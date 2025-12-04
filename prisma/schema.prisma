@@ -1,0 +1,185 @@
+// ---------------------------
+// GENERATORS & DATASOURCE
+// ---------------------------
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------
+// MODELS
+// ---------------------------
+
+// CITY / LOCATION MODEL
+model Location {
+  id        Int             @id @default(autoincrement())
+  cityName  String          @unique
+  state     String? 
+  
+  // Coordinates for distance calculation
+  latitude  Float?
+  longitude Float?
+  
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  // Relations
+  oneWaySource    OneWayPackage[] @relation("OneWaySource")
+  oneWayDestination OneWayPackage[] @relation("OneWayDestination")
+
+  bookingsPick TripBooking[] @relation("PickLocation")
+  bookingsDrop TripBooking[] @relation("DropLocation")
+}
+
+// CAB MODEL
+model Cab {
+  id                 Int               @id @default(autoincrement())
+  name               String            @unique
+  type               String              // Sedan / SUV / Hatchback / etc
+  capacityPassengers Int
+  capacityLuggage    Int
+  features           Json?             // Array of features like AC, GPS, etc.
+  baseImageUrl       String?
+  description        String?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  oneWayPackages  OneWayPackage[]
+  localPackages   LocalPackage[]
+  roundTripRates  RoundTripRate[]
+  bookings        TripBooking[]
+}
+
+// ONE-WAY FIXED PACKAGE MODEL
+model OneWayPackage {
+  id             Int         @id @default(autoincrement())
+  sourceId       Int
+  destinationId  Int
+  cabId          Int?
+  priceFixed     Int
+  
+  // Auto-calculated distance (will be populated via API)
+  distanceKm     Float?
+  
+  // Time stored as hours and minutes separately
+  estimatedHours    Int?
+  estimatedMinutes  Int?
+  
+  // Fixed package features (standard for all one-way packages)
+  packageFeatures   Json?     // Fixed features like "Assured Cab", "Verified Driver", etc.
+  
+  // Additional features from cab (will be populated from cab.features)
+  // No need to store separately as we can get from cab relation
+
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  // Relations
+  source      Location   @relation("OneWaySource", fields: [sourceId], references: [id])
+  destination Location   @relation("OneWayDestination", fields: [destinationId], references: [id])
+  cab         Cab?       @relation(fields: [cabId], references: [id], onDelete: SetNull)
+  bookings    TripBooking[]
+}
+
+// ROUND TRIP RATE PER KM
+model RoundTripRate {
+  id                    Int      @id @default(autoincrement())
+  cabId                 Int?
+  ratePerKm             Int
+  minimumKm             Int?
+  driverAllowancePerDay Int?
+
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  cab                   Cab?     @relation(fields: [cabId], references: [id], onDelete: SetNull)
+}
+
+// LOCAL PACKAGES 8/80 etc
+model LocalPackage {
+  id              Int      @id @default(autoincrement())
+  cabId           Int?
+  hoursIncluded   Int
+  kmIncluded      Int
+  priceFixed      Int
+  extraKmRate     Int?
+  extraHourRate   Int?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  cab             Cab?     @relation(fields: [cabId], references: [id], onDelete: SetNull)
+  bookings        TripBooking[]
+}
+
+// BOOKING MODEL — FOR ALL TRIP TYPES
+model TripBooking {
+  id                Int       @id @default(autoincrement())
+
+  // Booking Type
+  type              TripType
+
+  // Relations to cab & packages
+  cabId             Int?
+  oneWayPackageId   Int?
+  localPackageId    Int?
+
+  // Journey
+  pickupLocationId  Int?
+  dropLocationId    Int?
+  pickupDate        DateTime?
+  pickupTime        String?
+  journeyDays       Int?     // Only for round-trip
+  estimatedPrice    Int?
+
+  // User Details
+  firstName         String?
+  email             String?
+  mobile            String?
+
+  specialRequest    String?
+  alternativeNumber String?
+  flightNumber      String?
+
+  status            BookingStatus @default(PENDING)
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  cab             Cab?            @relation(fields: [cabId], references: [id], onDelete: SetNull)
+
+  oneWayPackage   OneWayPackage?  @relation(fields: [oneWayPackageId], references: [id], onDelete: SetNull)
+  localPackage    LocalPackage?   @relation(fields: [localPackageId], references: [id])
+
+  pickupLocation  Location?       @relation("PickLocation", fields: [pickupLocationId], references: [id])
+  dropLocation    Location?       @relation("DropLocation", fields: [dropLocationId], references: [id])
+}
+
+// ENUMS
+enum TripType {
+  ONEWAY
+  ROUNDTRIP
+  LOCAL
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}
+
+// ADMIN MODEL (for authentication)
+model Admin {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique
+  password  String
+  email     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

@@ -1,0 +1,439 @@
+'use client'
+
+import { useState, useEffect } from "react";
+import { Button } from "./ui/button";
+import { Card } from "./ui/card";
+import { Badge } from "./ui/badge";
+import { calculateTripPrice } from "@/lib/distances";
+
+interface Car {
+  id: number; // This will be the Package ID or Rate ID (unique for list key)
+  cabId: number; // This is the actual Cab ID
+  name: string;
+  type: string;
+  capacity: number;
+  pricePerKm: number;
+  image: string;
+  features: string;
+  available: boolean;
+  // Added fields for backend data
+  priceFixed?: number;
+  minKm?: number;
+  driverAllowance?: number;
+  hoursIncluded?: number;
+  kmIncluded?: number;
+  extraKmRate?: number;
+  extraHourRate?: number;
+  distance?: number; // Added distance field
+}
+
+interface CarListProps {
+  tripData: any;
+  tripType: string;
+  onSelectCar: (car: Car & { totalPrice: number }) => void;
+  onBack?: () => void;
+}
+
+const CarList = ({ tripData, tripType, onSelectCar, onBack }: CarListProps) => {
+  const [cars, setCars] = useState<Car[]>([]);
+  const [roundTripRates, setRoundTripRates] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [expandedCar, setExpandedCar] = useState<number | null>(null);
+
+  useEffect(() => {
+    fetchCabs();
+  }, []);
+
+  const fetchCabs = async () => {
+    setLoading(true);
+    try {
+      let url = `/api/packages?tripType=${tripType}`;
+
+      if (tripType === 'oneway' && tripData.pickupCityId && tripData.dropCityId) {
+        url += `&sourceId=${tripData.pickupCityId}&destinationId=${tripData.dropCityId}`;
+      }
+
+      const response = await fetch(url);
+      if (response.ok) {
+        const data = await response.json();
+
+        // Map different response types to unified Car interface
+        let mappedCars: Car[] = [];
+
+        if (tripType === 'oneway') {
+          // data is OneWayPackage[]
+          mappedCars = data.map((pkg: any) => ({
+            id: pkg.id, // Use Package ID for unique key
+            cabId: pkg.cab.id,
+            name: pkg.cab.name,
+            type: pkg.cab.type,
+            capacity: pkg.cab.capacityPassengers,
+            pricePerKm: 0, // Not used for fixed price
+            image: pkg.cab.baseImageUrl,
+            features: JSON.stringify(pkg.cab.features),
+            available: true,
+            priceFixed: pkg.priceFixed,
+            distance: pkg.distanceKm // Map distance from package
+          }));
+        } else if (tripType === 'local') {
+          // data is LocalPackage[]
+          mappedCars = data.map((pkg: any) => ({
+            id: pkg.id, // Use Package ID for unique key
+            cabId: pkg.cab.id,
+            name: pkg.cab.name,
+            type: pkg.cab.type,
+            capacity: pkg.cab.capacityPassengers,
+            pricePerKm: 0,
+            image: pkg.cab.baseImageUrl,
+            features: JSON.stringify(pkg.cab.features),
+            available: true,
+            priceFixed: pkg.priceFixed,
+            hoursIncluded: pkg.hoursIncluded,
+            kmIncluded: pkg.kmIncluded,
+            extraKmRate: pkg.extraKmRate,
+            extraHourRate: pkg.extraHourRate
+          }));
+        } else if (tripType === 'roundtrip') {
+          // data is RoundTripRate[]
+          mappedCars = data.map((rate: any) => ({
+            id: rate.id, // Use Rate ID for unique key
+            cabId: rate.cab.id,
+            name: rate.cab.name,
+            type: rate.cab.type,
+            capacity: rate.cab.capacityPassengers,
+            pricePerKm: rate.ratePerKm,
+            image: rate.cab.baseImageUrl,
+            features: JSON.stringify(rate.cab.features),
+            available: true,
+            minKm: rate.minimumKm,
+            driverAllowance: rate.driverAllowancePerDay
+          }));
+          setRoundTripRates(data); // Keep raw rates for detailed calc if needed
+        }
+
+        setCars(mappedCars);
+      }
+    } catch (error) {
+      console.error('Failed to fetch cabs:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  interface PriceDetails {
+    totalPrice: number;
+    distance: number;
+    breakdown: {
+      baseFare: number;
+      distanceFare: number;
+      driverAllowance: number;
+      returnFare?: number;
+    };
+  }
+
+  const calculatePrice = (car: Car): PriceDetails => {
+    // For One Way and Local, use the fixed price from backend
+    if (tripType === 'oneway' || tripType === 'local') {
+      return {
+        totalPrice: car.priceFixed || 0,
+        distance: tripType === 'local' ? (car.kmIncluded || 0) : (car.distance || 0),
+        breakdown: {
+          baseFare: car.priceFixed || 0,
+          distanceFare: 0,
+          driverAllowance: 0
+        }
+      };
+    }
+
+    // For Round Trip, calculate based on rates
+    if (tripType === 'roundtrip') {
+      const days = parseInt(tripData.journeyDays) || 1;
+      const minKmPerDay = car.minKm || 300;
+      const minTotalKm = minKmPerDay * days;
+
+      // Estimate distance
+      const estimatedDistance = minTotalKm;
+
+      const distanceFare = estimatedDistance * car.pricePerKm;
+      const driverAllowance = (car.driverAllowance || 0) * days;
+      const totalPrice = distanceFare + driverAllowance;
+
+      return {
+        totalPrice,
+        distance: estimatedDistance,
+        breakdown: {
+          baseFare: 0,
+          distanceFare,
+          driverAllowance
+        }
+      };
+    }
+
+    return {
+      totalPrice: 0,
+      distance: 0,
+      breakdown: { baseFare: 0, distanceFare: 0, driverAllowance: 0 }
+    };
+  };
+
+  const parseFeatures = (features: string | null) => {
+    if (!features) return [];
+    try {
+      return JSON.parse(features);
+    } catch {
+      return [];
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-white text-xl">Loading available cabs...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen relative overflow-hidden">
+      {/* Background Image */}
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat bg-fixed"
+        style={{
+          backgroundImage: `url('https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80')`
+        }}
+      />
+      {/* Background overlays */}
+      <div className="absolute inset-0 bg-black/40" />
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-accent/20" />
+
+      <div className="max-w-7xl mx-auto py-12 px-4 relative z-10">
+        {/* Back Button */}
+        {onBack && (
+          <Button
+            onClick={onBack}
+            className="mb-6 px-4 py-2 !rounded-full text-sm font-medium backdrop-blur-md bg-white/20 hover:bg-white/30 text-white border border-white/30 hover:border-white/50 transition-all duration-300 hover:scale-105 flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to Search
+          </Button>
+        )}
+
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Sidebar */}
+          <Card className="lg:col-span-1 p-6 rounded-3xl h-fit sticky top-4 shadow-2xl backdrop-blur-xl bg-white/10 border border-white/20 relative overflow-hidden">
+            {/* Liquid glass effect overlay */}
+            <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-white/5 to-transparent rounded-3xl" />
+            <div className="absolute inset-0 bg-gradient-to-tl from-primary/10 via-transparent to-accent/10 rounded-3xl" />
+
+            <div className="relative z-10">
+              <h3 className="text-xl font-bold mb-4 text-white drop-shadow-lg">Trip Details</h3>
+              <div className="space-y-3 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-white/70">Trip Type:</span>
+                  <span className="font-semibold text-white capitalize">{tripType}</span>
+                </div>
+                {tripData.pickupCity && (
+                  <div className="flex justify-between">
+                    <span className="text-white/70">From:</span>
+                    <span className="font-semibold text-white">{tripData.pickupCity}</span>
+                  </div>
+                )}
+                {tripData.dropCity && (
+                  <div className="flex justify-between">
+                    <span className="text-white/70">To:</span>
+                    <span className="font-semibold text-white">{tripData.dropCity}</span>
+                  </div>
+                )}
+                {tripData.pickupCity && tripData.dropCity && tripType !== 'local' && (
+                  <div className="flex justify-between">
+                    <span className="text-white/70">Distance:</span>
+                    <span className="font-semibold text-white">{calculatePrice(cars[0] || { pricePerKm: 10 } as Car).distance} km</span>
+                  </div>
+                )}
+                <div className="flex justify-between">
+                  <span className="text-white/70">Date:</span>
+                  <span className="font-semibold text-white">{new Date().toLocaleDateString()}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-white/70">Time:</span>
+                  <span className="font-semibold text-white">{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                </div>
+                {tripData.mobile && (
+                  <div className="flex justify-between">
+                    <span className="text-white/70">Mobile:</span>
+                    <span className="font-semibold text-white">{tripData.mobile}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </Card>
+
+          {/* Car List */}
+          <div className="lg:col-span-3 space-y-6">
+            {cars.map((car) => {
+              const priceCalculation = calculatePrice(car);
+              const features = parseFeatures(car.features);
+
+              return (
+                <Card key={car.id} className="p-6 rounded-3xl shadow-2xl backdrop-blur-xl bg-white/10 border border-white/20 relative overflow-hidden hover:bg-white/15 transition-all duration-300">
+                  {/* Liquid glass effect overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-white/5 to-transparent rounded-3xl" />
+                  <div className="absolute inset-0 bg-gradient-to-tl from-primary/10 via-transparent to-accent/10 rounded-3xl" />
+
+                  <div className="relative z-10">
+                    <div className="flex flex-col md:flex-row gap-6">
+                      <div className="md:w-1/3">
+                        <img
+                          src={car.image || "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400&h=300&fit=crop"}
+                          alt={car.name}
+                          className="w-full h-48 object-cover rounded-2xl"
+                        />
+                      </div>
+
+                      <div className="md:w-2/3 flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-start justify-between mb-3">
+                            <div>
+                              <h3 className="text-2xl font-bold text-white drop-shadow">{car.name}</h3>
+                              <p className="text-white/70 capitalize">{car.type}</p>
+                              {tripType === 'oneway' && (
+                                <p className="text-white/60 text-sm">Fixed Price Package</p>
+                              )}
+                              {tripType === 'local' && (
+                                <p className="text-white/60 text-sm">{car.hoursIncluded} Hr / {car.kmIncluded} Km Package</p>
+                              )}
+                              {tripType === 'roundtrip' && (
+                                <p className="text-white/60 text-sm">₹{car.pricePerKm}/km • Min {car.minKm}km/day</p>
+                              )}
+                            </div>
+                            <div className="text-right">
+                              <p className="text-3xl font-bold text-yellow-400 drop-shadow">₹{priceCalculation.totalPrice}</p>
+                            </div>
+                          </div>
+
+                          {tripType === 'roundtrip' && (() => {
+                            const rate = roundTripRates.find(r => r.cabId === car.id);
+                            const minKm = rate?.minimumKm || 300;
+                            const days = parseInt(tripData.journeyDays) || 1;
+                            const allowedDistance = minKm * days;
+                            const totalDistance = priceCalculation.distance; // This is already distance * 2 for roundtrip
+
+                            if (totalDistance > allowedDistance) {
+                              return (
+                                <div className="mb-3 p-3 bg-red-500/20 border border-red-500/50 rounded-lg">
+                                  <p className="text-red-200 text-sm font-medium">
+                                    ⚠️ Trip exceeds daily limit
+                                  </p>
+                                  <p className="text-red-200/80 text-xs mt-1">
+                                    Total distance ({totalDistance}km) exceeds the allowed limit of {allowedDistance}km ({minKm}km/day × {days} days).
+                                    Please increase journey days.
+                                  </p>
+                                </div>
+                              );
+                            }
+                            return null;
+                          })()}
+
+                          <div className="flex flex-wrap gap-2 mb-4">
+                            <Badge className="rounded-full px-3 py-1 bg-white/20 text-white border border-white/30">
+                              {car.capacity} Seats
+                            </Badge>
+                            {features.map((feature: string) => (
+                              <Badge key={feature} className="rounded-full px-3 py-1 bg-white/20 text-white border border-white/30">
+                                {feature}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row gap-3">
+                          <Button
+                            onClick={() => onSelectCar({ ...car, totalPrice: priceCalculation.totalPrice })}
+                            disabled={tripType === 'roundtrip' && (() => {
+                              const rate = roundTripRates.find(r => r.cabId === car.id);
+                              const minKm = rate?.minimumKm || 300;
+                              const days = parseInt(tripData.journeyDays) || 1;
+                              return priceCalculation.distance > (minKm * days);
+                            })()}
+                            className="flex-1 !rounded-full font-semibold backdrop-blur-md bg-yellow-400/80 hover:bg-yellow-300/90 text-black border border-yellow-300/50 hover:border-yellow-200/70 transition-all duration-300 hover:scale-105 hover:shadow-xl relative overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                          >
+                            <div className="absolute inset-0 bg-gradient-to-r from-yellow-200/20 via-yellow-100/30 to-yellow-200/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                            <span className="relative z-10">Book Now</span>
+                          </Button>
+
+                          <Button
+                            onClick={() => setExpandedCar(expandedCar === car.id ? null : car.id)}
+                            className="!rounded-full backdrop-blur-md bg-white/20 hover:bg-white/30 text-white border border-white/30 hover:border-white/50 transition-all duration-300"
+                          >
+                            {expandedCar === car.id ? "Hide" : "View"} Fare Details
+                          </Button>
+                        </div>
+
+                        {expandedCar === car.id && (
+                          <div className="mt-4 p-4 rounded-2xl backdrop-blur-md bg-white/10 border border-white/20 animate-in slide-in-from-top-4 fade-in duration-300">
+                            <div className="space-y-2 text-sm text-white">
+                              <div className="flex justify-between">
+                                <span className="text-white/70">Distance:</span>
+                                <span className="font-semibold">{priceCalculation.distance} km</span>
+                              </div>
+                              {tripType === 'roundtrip' && (
+                                <>
+                                  <div className="flex justify-between">
+                                    <span className="text-white/70">Min Distance ({priceCalculation.distance} km):</span>
+                                    <span className="font-semibold">₹{priceCalculation.breakdown.distanceFare}</span>
+                                  </div>
+                                </>
+                              )}
+                              {tripType === 'local' && (
+                                <>
+                                  <div className="flex justify-between">
+                                    <span className="text-white/70">Extra Km Rate:</span>
+                                    <span className="font-semibold">₹{car.extraKmRate}/km</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-white/70">Extra Hour Rate:</span>
+                                    <span className="font-semibold">₹{car.extraHourRate}/hr</span>
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                            {priceCalculation.breakdown.driverAllowance > 0 && (
+                              <div className="flex justify-between text-sm text-white mt-2 px-4">
+                                <span className="text-white/70">Driver Allowance:</span>
+                                <span className="font-semibold">₹{priceCalculation.breakdown.driverAllowance}</span>
+                              </div>
+                            )}
+                            {tripType === 'roundtrip' && (
+                              <div className="text-xs text-white/50 mt-1 px-4">
+                                *Includes min. {roundTripRates.find(r => r.cabId === car.id)?.minimumKm || 300}km/day charge if applicable
+                              </div>
+                            )}
+                            <div className="border-t border-white/20 pt-2 flex justify-between font-bold text-white mt-2 px-4">
+                              <span>Total:</span>
+                              <span className="text-yellow-400">₹{priceCalculation.totalPrice}</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+
+        {cars.length === 0 && (
+          <div className="text-center py-12">
+            <div className="text-white text-xl mb-4">No cabs available</div>
+            <div className="text-white/70">Please try again later or contact support</div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default CarList;
