@@ -9,14 +9,14 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json()
-    const { cabId, ratePerKm, minimumKm, driverAllowancePerDay } = body
+    const { cabId, ratePerKm, dailyKmLimit, driverAllowancePerDay } = body
 
     const rate = await prisma.roundTripRate.update({
       where: { id: parseInt(id) },
       data: {
         cabId: parseInt(cabId),
         ratePerKm: parseInt(ratePerKm),
-        minimumKm: minimumKm ? parseInt(minimumKm) : null,
+        dailyKmLimit: dailyKmLimit ? parseInt(dailyKmLimit) : 300,
         driverAllowancePerDay: driverAllowancePerDay ? parseInt(driverAllowancePerDay) : null
       },
       include: {

@@ -5,7 +5,17 @@ import { prisma } from '../../../lib/prisma'
 export async function GET() {
   try {
     const locations = await prisma.location.findMany({
-      orderBy: { cityName: 'asc' }
+      orderBy: { cityName: 'asc' },
+      include: {
+        _count: {
+          select: {
+            oneWaySource: true,
+            oneWayDestination: true,
+            bookingsPick: true,
+            bookingsDrop: true
+          }
+        }
+      }
     })
 
     // Map Location model to the expected City format for backward compatibility
@@ -13,8 +23,10 @@ export async function GET() {
       id: location.id,
       name: location.cityName,
       state: location.state,
+      isAirport: location.isAirport,
       createdAt: location.createdAt,
-      updatedAt: location.updatedAt
+      updatedAt: location.updatedAt,
+      _count: location._count
     }))
 
     return NextResponse.json(cities)

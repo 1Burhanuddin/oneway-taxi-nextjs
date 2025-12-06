@@ -23,7 +23,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const data = await request.json()
-    const { cabId, ratePerKm, minimumKm, driverAllowancePerDay } = data
+    const { cabId, ratePerKm, dailyKmLimit, driverAllowancePerDay } = data
 
     // Validate required fields
     if (!cabId || !ratePerKm) {
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       data: {
         cabId,
         ratePerKm: parseFloat(ratePerKm),
-        minimumKm: minimumKm ? parseInt(minimumKm) : 0,
+        dailyKmLimit: dailyKmLimit ? parseInt(dailyKmLimit) : 300,
         driverAllowancePerDay: driverAllowancePerDay ? parseFloat(driverAllowancePerDay) : 0
       },
       include: {

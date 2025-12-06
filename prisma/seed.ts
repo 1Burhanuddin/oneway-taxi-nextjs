@@ -4,15 +4,25 @@ import bcrypt from 'bcryptjs'
 const prisma = new PrismaClient()
 
 async function main() {
-  console.log('🌱 Seeding database...')
+  console.log('🌱 Seeding database with real data...')
+  
+  // Clear existing data
+  console.log('🧹 Clearing existing data...')
+  await prisma.tripBooking.deleteMany()
+  await prisma.oneWayPackage.deleteMany()
+  await prisma.localPackage.deleteMany()
+  await prisma.roundTripRate.deleteMany()
+  await prisma.cab.deleteMany()
+  await prisma.location.deleteMany()
+  await prisma.admin.deleteMany()
+  
+  console.log('✅ Database cleared. Ready for real data!')
   
   // 1. Create Admin User
   console.log('👤 Creating admin user...')
   const hashedPassword = bcrypt.hashSync('admin123', 10)
-  const admin = await prisma.admin.upsert({
-    where: { username: 'admin' },
-    update: {},
-    create: {
+  const admin = await prisma.admin.create({
+    data: {
       username: 'admin',
       password: hashedPassword,
       email: 'admin@oneway-taxi.com'
@@ -20,194 +30,532 @@ async function main() {
   })
   console.log(`✅ Admin created: ${admin.username}`)
 
-  // 2. Create Locations (Cities)
+  // 2. Create Locations
   console.log('📍 Creating locations...')
-  const locations = [
-    { cityName: 'Mumbai', state: 'Maharashtra' },
-    { cityName: 'Surat', state: 'Gujarat' },
-    { cityName: 'Ahmedabad', state: 'Gujarat' },
-    { cityName: 'Pune', state: 'Maharashtra' },
-    { cityName: 'Vadodara', state: 'Gujarat' },
-    { cityName: 'Rajkot', state: 'Gujarat' },
-    { cityName: 'Nashik', state: 'Maharashtra' },
-    { cityName: 'Gandhinagar', state: 'Gujarat' }
-  ]
-
-  const createdLocations = []
-  for (const location of locations) {
-    const loc = await prisma.location.upsert({
-      where: { cityName: location.cityName },
-      update: {},
-      create: location
+  const locations = await Promise.all([
+    // Gujarat
+    prisma.location.create({
+      data: { cityName: 'Surat', state: 'Gujarat', isAirport: false }
+    }),
+    prisma.location.create({
+      data: { cityName: 'Surat Airport', state: 'Gujarat', isAirport: true }
+    }),
+    prisma.location.create({
+      data: { cityName: 'Ahmedabad', state: 'Gujarat', isAirport: false }
+    }),
+    prisma.location.create({
+      data: { cityName: 'Ahmedabad Airport', state: 'Gujarat', isAirport: true }
+    }),
+    prisma.location.create({
+      data: { cityName: 'Vadodara', state: 'Gujarat', isAirport: false }
+    }),
+    prisma.location.create({
+      data: { cityName: 'Vadodara Airport', state: 'Gujarat', isAirport: true }
+    }),
+    prisma.location.create({
+      data: { cityName: 'Rajkot', state: 'Gujarat', isAirport: false }
+    }),
+    prisma.location.create({
+      data: { cityName: 'Rajkot Airport', state: 'Gujarat', isAirport: true }
+    }),
+    // Maharashtra
+    prisma.location.create({
+      data: { cityName: 'Mumbai', state: 'Maharashtra', isAirport: false }
+    }),
+    prisma.location.create({
+      data: { cityName: 'Mumbai Airport', state: 'Maharashtra', isAirport: true }
+    }),
+    prisma.location.create({
+      data: { cityName: 'Pune', state: 'Maharashtra', isAirport: false }
+    }),
+    prisma.location.create({
+      data: { cityName: 'Pune Airport', state: 'Maharashtra', isAirport: true }
     })
-    createdLocations.push(loc)
-    console.log(`   📍 ${loc.cityName}, ${loc.state}`)
-  }
+  ])
+  console.log(`✅ Created ${locations.length} locations`)
 
-  // 3. Create Cabs
+  // 3. Create Cabs with organized data
   console.log('🚗 Creating cabs...')
-  const cabs = [
-    {
-      name: 'Swift Dzire',
-      type: 'sedan',
-      capacityPassengers: 4,
-      capacityLuggage: 2,
-      baseImageUrl: 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400',
-      description: 'Comfortable sedan for city rides'
-    },
-    {
-      name: 'Toyota Innova',
-      type: 'suv',
-      capacityPassengers: 7,
-      capacityLuggage: 4,
-      baseImageUrl: 'https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=400',
-      description: 'Spacious SUV for family trips'
-    },
-    {
-      name: 'Hyundai i20',
-      type: 'hatchback',
-      capacityPassengers: 4,
-      capacityLuggage: 2,
-      baseImageUrl: 'https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=400',
-      description: 'Compact and efficient hatchback'
-    },
-    {
-      name: 'Honda City',
-      type: 'sedan',
-      capacityPassengers: 4,
-      capacityLuggage: 3,
-      baseImageUrl: 'https://images.unsplash.com/photo-1563720223185-11003d516935?w=400',
-      description: 'Premium sedan with comfort features'
-    },
-    {
-      name: 'Mahindra Scorpio',
-      type: 'suv',
-      capacityPassengers: 7,
-      capacityLuggage: 5,
-      baseImageUrl: 'https://images.unsplash.com/photo-1581540222194-0def2dda95b8?w=400',
-      description: 'Rugged SUV for long journeys'
-    },
-    {
-      name: 'BMW 3 Series',
-      type: 'luxury',
-      capacityPassengers: 4,
-      capacityLuggage: 3,
-      baseImageUrl: 'https://images.unsplash.com/photo-1555215695-3004980ad54e?w=400',
-      description: 'Luxury sedan for premium experience'
-    }
-  ]
-
-  const createdCabs = []
-  for (const cab of cabs) {
-    const createdCab = await prisma.cab.upsert({
-      where: { name: cab.name },
-      update: {},
-      create: cab
+  const cabs = await Promise.all([
+    // Sedan cars (4 passengers, 3 luggage)
+    prisma.cab.create({
+      data: {
+        name: 'Toyota Etios',
+        type: 'Sedan',
+        capacityPassengers: 4,
+        capacityLuggage: 3,
+        features: ['AC', 'GPS', 'Music System'],
+        baseImageUrl: '/onewaytaxicablogo/etios-car-1.jpg',
+        description: 'Comfortable sedan for city travel'
+      }
+    }),
+    prisma.cab.create({
+      data: {
+        name: 'Swift Dzire',
+        type: 'Sedan',
+        capacityPassengers: 4,
+        capacityLuggage: 2,
+        features: ['AC', 'GPS', 'Music System'],
+        baseImageUrl: '/onewaytaxicablogo/maruti-suzuki-swift-dzire.jpeg',
+        description: 'Popular compact sedan'
+      }
+    }),
+    prisma.cab.create({
+      data: {
+        name: 'Hyundai Aura',
+        type: 'Sedan',
+        capacityPassengers: 4,
+        capacityLuggage: 2,
+        features: ['AC', 'GPS', 'Music System'],
+        baseImageUrl: '/onewaytaxicablogo/Hyundai_Aura.jpg',
+        description: 'Modern sedan with premium features'
+      }
+    }),
+    prisma.cab.create({
+      data: {
+        name: 'Hyundai Xcent',
+        type: 'Sedan',
+        capacityPassengers: 4,
+        capacityLuggage: 2,
+        features: ['AC', 'GPS', 'Music System'],
+        baseImageUrl: '/onewaytaxicablogo/hyundai-xcent.jpg',
+        description: 'Reliable compact sedan'
+      }
+    }),
+    prisma.cab.create({
+      data: {
+        name: 'Honda Amaze',
+        type: 'Sedan',
+        capacityPassengers: 4,
+        capacityLuggage: 2,
+        features: ['AC', 'GPS', 'Music System'],
+        baseImageUrl: '/onewaytaxicablogo/honda_amaze.jpg',
+        description: 'Spacious and fuel-efficient sedan'
+      }
+    }),
+    prisma.cab.create({
+      data: {
+        name: 'Suzuki Ciaz',
+        type: 'Sedan',
+        capacityPassengers: 4,
+        capacityLuggage: 3,
+        features: ['AC', 'GPS', 'Music System'],
+        baseImageUrl: '/onewaytaxicablogo/Maruti-Suzuki-Ciaz.jpg',
+        description: 'Premium sedan with extra luggage space'
+      }
+    }),
+    // SUV cars
+    prisma.cab.create({
+      data: {
+        name: 'Toyota Ertiga',
+        type: 'SUV',
+        capacityPassengers: 7,
+        capacityLuggage: 3,
+        features: ['AC', 'GPS', 'Music System', 'Extra Space'],
+        baseImageUrl: '/onewaytaxicablogo/ertiga.jpg',
+        description: '7-seater SUV for family travel'
+      }
+    }),
+    prisma.cab.create({
+      data: {
+        name: 'Toyota Innova',
+        type: 'SUV',
+        capacityPassengers: 6,
+        capacityLuggage: 3,
+        features: ['AC', 'GPS', 'Music System', 'Premium Interior'],
+        baseImageUrl: '/onewaytaxicablogo/innova.jpg',
+        description: '6-seater premium SUV'
+      }
+    }),
+    prisma.cab.create({
+      data: {
+        name: 'Toyota Innova Crysta',
+        type: 'SUV',
+        capacityPassengers: 6,
+        capacityLuggage: 3,
+        features: ['AC', 'GPS', 'Music System', 'Premium Interior', 'Leather Seats'],
+        baseImageUrl: '/onewaytaxicablogo/Toyota-Innova-Crysta.jpg',
+        description: 'Luxury 6-seater SUV with premium features'
+      }
+    }),
+    prisma.cab.create({
+      data: {
+        name: 'KIA Carnival',
+        type: 'SUV',
+        capacityPassengers: 6,
+        capacityLuggage: 4,
+        features: ['AC', 'GPS', 'Music System', 'Premium Interior', 'Captain Seats'],
+        baseImageUrl: '/onewaytaxicablogo/Kia-Carnival.jpg',
+        description: 'Luxury MPV with captain seats'
+      }
+    }),
+    prisma.cab.create({
+      data: {
+        name: 'KIA Carens',
+        type: 'SUV',
+        capacityPassengers: 4,
+        capacityLuggage: 4,
+        features: ['AC', 'GPS', 'Music System', 'Modern Interior'],
+        baseImageUrl: '/onewaytaxicablogo/kia-carens.jpeg',
+        description: 'Modern SUV with spacious interior'
+      }
+    }),
+    // Bus/Van options
+    prisma.cab.create({
+      data: {
+        name: 'Tempo Traveler',
+        type: 'Bus',
+        capacityPassengers: 17,
+        capacityLuggage: 10,
+        features: ['AC', 'GPS', 'Music System', 'Group Travel'],
+        baseImageUrl: '/onewaytaxicablogo/Tempo-traveler.jpg',
+        description: '17-seater bus for group travel'
+      }
+    }),
+    prisma.cab.create({
+      data: {
+        name: 'Tata Winger',
+        type: 'Van',
+        capacityPassengers: 12,
+        capacityLuggage: 8,
+        features: ['AC', 'GPS', 'Music System', 'Group Travel'],
+        baseImageUrl: '/onewaytaxicablogo/winger.jpg',
+        description: '12-seater van for group travel'
+      }
     })
-    createdCabs.push(createdCab)
-    console.log(`   🚗 ${createdCab.name} (${createdCab.type})`)
-  }
+  ])
+  console.log(`✅ Created ${cabs.length} cabs`)
+
+  // Get cab references for packages
+  const sedanCabs = cabs.filter(cab => cab.type === 'Sedan')
+  const toyotaErtiga = cabs.find(cab => cab.name === 'Toyota Ertiga')
+  const toyotaInnova = cabs.find(cab => cab.name === 'Toyota Innova')
+  const toyotaInnovaCrysta = cabs.find(cab => cab.name === 'Toyota Innova Crysta')
+  const swiftDzire = cabs.find(cab => cab.name === 'Swift Dzire')
+  const kiaCarnival = cabs.find(cab => cab.name === 'KIA Carnival')
+  const kiaCarens = cabs.find(cab => cab.name === 'KIA Carens')
 
   // 4. Create One-Way Packages
-  console.log('🛣️ Creating one-way packages...')
-  const oneWayRoutes = [
-    { from: 'Mumbai', to: 'Pune', distance: 150 },
-    { from: 'Mumbai', to: 'Surat', distance: 280 },
-    { from: 'Ahmedabad', to: 'Surat', distance: 265 },
-    { from: 'Ahmedabad', to: 'Vadodara', distance: 110 },
-    { from: 'Surat', to: 'Vadodara', distance: 130 },
-    { from: 'Mumbai', to: 'Nashik', distance: 165 }
-  ]
-
-  for (const route of oneWayRoutes) {
-    const sourceLocation = createdLocations.find(l => l.cityName === route.from)
-    const destLocation = createdLocations.find(l => l.cityName === route.to)
-    
-    if (sourceLocation && destLocation) {
-      for (const cab of createdCabs) {
-        const baseRate = cab.type === 'luxury' ? 25 : cab.type === 'suv' ? 15 : 12
-        const priceFixed = 500 + (route.distance * baseRate)
-        
-        const totalMinutes = Math.ceil(route.distance / 60 * 60) // Assuming 60 km/h average speed
-        const hours = Math.floor(totalMinutes / 60)
-        const minutes = totalMinutes % 60
-        
-        await prisma.oneWayPackage.create({
-          data: {
-            sourceId: sourceLocation.id,
-            destinationId: destLocation.id,
-            cabId: cab.id,
-            priceFixed,
-            distanceKm: route.distance,
-            estimatedHours: hours,
-            estimatedMinutes: minutes,
-            packageFeatures: ['AC', 'GPS', 'Music System']
-          }
-        })
-      }
-      console.log(`   🛣️ ${route.from} → ${route.to} (${route.distance}km)`)
-    }
+  console.log('📦 Creating one-way packages...')
+  const oneWayPackages = []
+  
+  // Surat to Mumbai Airport - All Sedans ₹3,500
+  for (const cab of sedanCabs) {
+    oneWayPackages.push(
+      prisma.oneWayPackage.create({
+        data: {
+          sourceId: locations[0].id, // Surat
+          destinationId: locations[1].id, // Mumbai Airport
+          cabId: cab.id,
+          priceFixed: 3500,
+          distanceKm: 280,
+          estimatedHours: 5,
+          estimatedMinutes: 30,
+          packageFeatures: ['Assured Cab', 'Verified Driver', 'Toll Parking Extra']
+        }
+      })
+    )
   }
 
-  // 5. Create Round Trip Rates
-  console.log('🔄 Creating round trip rates...')
-  for (const cab of createdCabs) {
-    const ratePerKm = cab.type === 'luxury' ? 25 : cab.type === 'suv' ? 15 : 12
-    
-    await prisma.roundTripRate.create({
+  // Mumbai Airport to Surat - All Sedans ₹3,500 (some ₹4,500 as per data)
+  for (const cab of sedanCabs) {
+    oneWayPackages.push(
+      prisma.oneWayPackage.create({
+        data: {
+          sourceId: locations[1].id, // Mumbai Airport
+          destinationId: locations[0].id, // Surat
+          cabId: cab.id,
+          priceFixed: 3500, // Note: Some entries showed ₹4,500
+          distanceKm: 280,
+          estimatedHours: 5,
+          estimatedMinutes: 30,
+          packageFeatures: ['Assured Cab', 'Verified Driver', 'Toll Parking Extra']
+        }
+      })
+    )
+  }
+
+  // Surat to Mumbai Airport - Toyota Ertiga ₹4,500
+  oneWayPackages.push(
+    prisma.oneWayPackage.create({
       data: {
-        cabId: cab.id,
-        ratePerKm,
-        minimumKm: 300,
+        sourceId: locations[0].id,
+        destinationId: locations[1].id,
+        cabId: toyotaErtiga?.id,
+        priceFixed: 4500,
+        distanceKm: 280,
+        estimatedHours: 5,
+        estimatedMinutes: 30,
+        packageFeatures: ['Assured Cab', 'Verified Driver', 'Toll Parking Extra']
+      }
+    })
+  )
+
+  // Mumbai Airport to Surat - Toyota Ertiga ₹4,500
+  oneWayPackages.push(
+    prisma.oneWayPackage.create({
+      data: {
+        sourceId: locations[1].id,
+        destinationId: locations[0].id,
+        cabId: toyotaErtiga?.id,
+        priceFixed: 4500,
+        distanceKm: 280,
+        estimatedHours: 5,
+        estimatedMinutes: 30,
+        packageFeatures: ['Assured Cab', 'Verified Driver', 'Toll Parking Extra']
+      }
+    })
+  )
+
+  // Surat to Mumbai Airport - Toyota Innova Crysta ₹5,000
+  oneWayPackages.push(
+    prisma.oneWayPackage.create({
+      data: {
+        sourceId: locations[0].id,
+        destinationId: locations[1].id,
+        cabId: toyotaInnovaCrysta?.id,
+        priceFixed: 5000,
+        distanceKm: 280,
+        estimatedHours: 5,
+        estimatedMinutes: 30,
+        packageFeatures: ['Assured Cab', 'Verified Driver', 'Toll Parking Extra']
+      }
+    })
+  )
+
+  // Mumbai Airport to Surat - Toyota Innova Crysta ₹5,000
+  oneWayPackages.push(
+    prisma.oneWayPackage.create({
+      data: {
+        sourceId: locations[1].id,
+        destinationId: locations[0].id,
+        cabId: toyotaInnovaCrysta?.id,
+        priceFixed: 5000,
+        distanceKm: 280,
+        estimatedHours: 5,
+        estimatedMinutes: 30,
+        packageFeatures: ['Assured Cab', 'Verified Driver', 'Toll Parking Extra']
+      }
+    })
+  )
+
+  // Surat to Ahmedabad - All Sedans ₹3,500
+  for (const cab of sedanCabs) {
+    oneWayPackages.push(
+      prisma.oneWayPackage.create({
+        data: {
+          sourceId: locations[0].id, // Surat
+          destinationId: locations[2].id, // Ahmedabad
+          cabId: cab.id,
+          priceFixed: 3500,
+          distanceKm: 265,
+          estimatedHours: 4,
+          estimatedMinutes: 30,
+          packageFeatures: ['Assured Cab', 'Verified Driver', 'Toll Parking Extra']
+        }
+      })
+    )
+  }
+
+  // Ahmedabad to Surat - All Sedans ₹3,500
+  for (const cab of sedanCabs) {
+    oneWayPackages.push(
+      prisma.oneWayPackage.create({
+        data: {
+          sourceId: locations[2].id, // Ahmedabad
+          destinationId: locations[0].id, // Surat
+          cabId: cab.id,
+          priceFixed: 3500,
+          distanceKm: 265,
+          estimatedHours: 4,
+          estimatedMinutes: 30,
+          packageFeatures: ['Assured Cab', 'Verified Driver', 'Toll Parking Extra']
+        }
+      })
+    )
+  }
+
+  // Surat to Ahmedabad - Toyota Ertiga ₹4,500
+  oneWayPackages.push(
+    prisma.oneWayPackage.create({
+      data: {
+        sourceId: locations[0].id,
+        destinationId: locations[2].id,
+        cabId: toyotaErtiga?.id,
+        priceFixed: 4500,
+        distanceKm: 265,
+        estimatedHours: 4,
+        estimatedMinutes: 30,
+        packageFeatures: ['Assured Cab', 'Verified Driver', 'Toll Parking Extra']
+      }
+    })
+  )
+
+  // Ahmedabad to Surat - Toyota Ertiga ₹4,500
+  oneWayPackages.push(
+    prisma.oneWayPackage.create({
+      data: {
+        sourceId: locations[2].id,
+        destinationId: locations[0].id,
+        cabId: toyotaErtiga?.id,
+        priceFixed: 4500,
+        distanceKm: 265,
+        estimatedHours: 4,
+        estimatedMinutes: 30,
+        packageFeatures: ['Assured Cab', 'Verified Driver', 'Toll Parking Extra']
+      }
+    })
+  )
+
+  // Surat to Ahmedabad - Toyota Innova Crysta ₹5,000
+  oneWayPackages.push(
+    prisma.oneWayPackage.create({
+      data: {
+        sourceId: locations[0].id,
+        destinationId: locations[2].id,
+        cabId: toyotaInnovaCrysta?.id,
+        priceFixed: 5000,
+        distanceKm: 265,
+        estimatedHours: 4,
+        estimatedMinutes: 30,
+        packageFeatures: ['Assured Cab', 'Verified Driver', 'Toll Parking Extra']
+      }
+    })
+  )
+
+  // Ahmedabad to Surat - Toyota Innova Crysta ₹5,000
+  oneWayPackages.push(
+    prisma.oneWayPackage.create({
+      data: {
+        sourceId: locations[2].id,
+        destinationId: locations[0].id,
+        cabId: toyotaInnovaCrysta?.id,
+        priceFixed: 5000,
+        distanceKm: 265,
+        estimatedHours: 4,
+        estimatedMinutes: 30,
+        packageFeatures: ['Assured Cab', 'Verified Driver', 'Toll Parking Extra']
+      }
+    })
+  )
+
+  await Promise.all(oneWayPackages)
+  console.log(`✅ Created ${oneWayPackages.length} one-way packages`)
+
+  // 5. Create Local Packages (Surat Local 8 Hours 80 Kms)
+  console.log('🏠 Creating local packages...')
+  const localPackages = []
+  
+  // Surat Local - All Sedans ₹2,000
+  for (const cab of sedanCabs) {
+    localPackages.push(
+      prisma.localPackage.create({
+        data: {
+          cabId: cab.id,
+          hoursIncluded: 8,
+          kmIncluded: 80,
+          priceFixed: 2000,
+          extraKmRate: 12,
+          extraHourRate: 150
+        }
+      })
+    )
+  }
+
+  // Surat Local - Toyota Ertiga ₹2,700
+  localPackages.push(
+    prisma.localPackage.create({
+      data: {
+        cabId: toyotaErtiga?.id,
+        hoursIncluded: 8,
+        kmIncluded: 80,
+        priceFixed: 2700,
+        extraKmRate: 14,
+        extraHourRate: 200
+      }
+    })
+  )
+
+  // Surat Local - Toyota Innova ₹3,500
+  localPackages.push(
+    prisma.localPackage.create({
+      data: {
+        cabId: toyotaInnova?.id,
+        hoursIncluded: 8,
+        kmIncluded: 80,
+        priceFixed: 3500,
+        extraKmRate: 16,
+        extraHourRate: 250
+      }
+    })
+  )
+
+  await Promise.all(localPackages)
+  console.log(`✅ Created ${localPackages.length} local packages`)
+
+  // 6. Create Round Trip Rates
+  console.log('🔄 Creating round trip rates...')
+  const roundTripRates = [
+    // Swift Dzire - ₹11 per km
+    prisma.roundTripRate.create({
+      data: {
+        cabId: swiftDzire?.id,
+        ratePerKm: 11,
+        dailyKmLimit: 300,
+        driverAllowancePerDay: 300
+      }
+    }),
+    // Toyota Ertiga - ₹14 per km
+    prisma.roundTripRate.create({
+      data: {
+        cabId: toyotaErtiga?.id,
+        ratePerKm: 14,
+        dailyKmLimit: 300,
+        driverAllowancePerDay: 400
+      }
+    }),
+    // Toyota Innova - ₹16 per km
+    prisma.roundTripRate.create({
+      data: {
+        cabId: toyotaInnova?.id,
+        ratePerKm: 16,
+        dailyKmLimit: 300,
+        driverAllowancePerDay: 500
+      }
+    }),
+    // Toyota Innova Crysta - ₹20 per km
+    prisma.roundTripRate.create({
+      data: {
+        cabId: toyotaInnovaCrysta?.id,
+        ratePerKm: 20,
+        dailyKmLimit: 300,
+        driverAllowancePerDay: 600
+      }
+    }),
+    // KIA Carnival - ₹35 per km
+    prisma.roundTripRate.create({
+      data: {
+        cabId: kiaCarnival?.id,
+        ratePerKm: 35,
+        dailyKmLimit: 300,
+        driverAllowancePerDay: 800
+      }
+    }),
+    // KIA Carens - ₹17 per km
+    prisma.roundTripRate.create({
+      data: {
+        cabId: kiaCarens?.id,
+        ratePerKm: 17,
+        dailyKmLimit: 300,
         driverAllowancePerDay: 500
       }
     })
-    console.log(`   🔄 ${cab.name}: ₹${ratePerKm}/km`)
-  }
-
-  // 6. Create Local Packages
-  console.log('🏠 Creating local packages...')
-  const localPackageTypes = [
-    { hours: 4, km: 40, name: '4/40' },
-    { hours: 8, km: 80, name: '8/80' },
-    { hours: 12, km: 120, name: '12/120' }
   ]
 
-  for (const cab of createdCabs) {
-    for (const packageType of localPackageTypes) {
-      const baseRate = cab.type === 'luxury' ? 20 : cab.type === 'suv' ? 12 : 8
-      const priceFixed = 300 + (packageType.km * baseRate)
-      
-      await prisma.localPackage.create({
-        data: {
-          cabId: cab.id,
-          hoursIncluded: packageType.hours,
-          kmIncluded: packageType.km,
-          priceFixed,
-          extraKmRate: baseRate + 2,
-          extraHourRate: 100
-        }
-      })
-    }
-    console.log(`   🏠 ${cab.name}: 4/40, 8/80, 12/120 packages`)
-  }
-
-  console.log('\n✅ Seeding completed successfully!')
-  console.log('📊 Database Summary:')
+  await Promise.all(roundTripRates)
+  console.log(`✅ Created ${roundTripRates.length} round trip rates`)
   
-  const counts = {
-    locations: await prisma.location.count(),
-    cabs: await prisma.cab.count(),
-    oneWayPackages: await prisma.oneWayPackage.count(),
-    roundTripRates: await prisma.roundTripRate.count(),
-    localPackages: await prisma.localPackage.count()
-  }
-  
-  console.log(`   📍 Locations: ${counts.locations}`)
-  console.log(`   🚗 Cabs: ${counts.cabs}`)
-  console.log(`   🛣️ One-way Packages: ${counts.oneWayPackages}`)
-  console.log(`   🔄 Round Trip Rates: ${counts.roundTripRates}`)
-  console.log(`   🏠 Local Packages: ${counts.localPackages}`)
+  console.log('\n✅ Seeding completed!')
 }
 
 main()

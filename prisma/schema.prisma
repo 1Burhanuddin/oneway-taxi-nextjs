@@ -20,6 +20,7 @@ model Location {
   id        Int             @id @default(autoincrement())
   cityName  String          @unique
   state     String? 
+  isAirport Boolean         @default(false)
   
   // Coordinates for distance calculation
   latitude  Float?
@@ -91,7 +92,7 @@ model RoundTripRate {
   id                    Int      @id @default(autoincrement())
   cabId                 Int?
   ratePerKm             Int
-  minimumKm             Int?
+  dailyKmLimit          Int      @default(300) // 300 kms per day limit
   driverAllowancePerDay Int?
 
   createdAt             DateTime @default(now())

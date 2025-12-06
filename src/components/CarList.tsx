@@ -105,7 +105,7 @@ const CarList = ({ tripData, tripType, onSelectCar, onBack }: CarListProps) => {
             image: rate.cab.baseImageUrl,
             features: JSON.stringify(rate.cab.features),
             available: true,
-            minKm: rate.minimumKm,
+            minKm: rate.dailyKmLimit,
             driverAllowance: rate.driverAllowancePerDay
           }));
           setRoundTripRates(data); // Keep raw rates for detailed calc if needed
@@ -148,19 +148,17 @@ const CarList = ({ tripData, tripType, onSelectCar, onBack }: CarListProps) => {
     // For Round Trip, calculate based on rates
     if (tripType === 'roundtrip') {
       const days = parseInt(tripData.journeyDays) || 1;
-      const minKmPerDay = car.minKm || 300;
-      const minTotalKm = minKmPerDay * days;
+      const dailyKmLimit = car.minKm || 300; // This is actually dailyKmLimit now
+      const totalKmForDays = dailyKmLimit * days;
 
-      // Estimate distance
-      const estimatedDistance = minTotalKm;
-
-      const distanceFare = estimatedDistance * car.pricePerKm;
+      // Calculate cost: days * dailyKmLimit * ratePerKm + driver allowance
+      const distanceFare = totalKmForDays * car.pricePerKm;
       const driverAllowance = (car.driverAllowance || 0) * days;
       const totalPrice = distanceFare + driverAllowance;
 
       return {
         totalPrice,
-        distance: estimatedDistance,
+        distance: totalKmForDays,
         breakdown: {
           baseFare: 0,
           distanceFare,
@@ -305,7 +303,7 @@ const CarList = ({ tripData, tripType, onSelectCar, onBack }: CarListProps) => {
                                 <p className="text-white/60 text-sm">{car.hoursIncluded} Hr / {car.kmIncluded} Km Package</p>
                               )}
                               {tripType === 'roundtrip' && (
-                                <p className="text-white/60 text-sm">₹{car.pricePerKm}/km • Min {car.minKm}km/day</p>
+                                <p className="text-white/60 text-sm">₹{car.pricePerKm}/km • {car.minKm}km/day limit</p>
                               )}
                             </div>
                             <div className="text-right">
@@ -313,28 +311,7 @@ const CarList = ({ tripData, tripType, onSelectCar, onBack }: CarListProps) => {
                             </div>
                           </div>
 
-                          {tripType === 'roundtrip' && (() => {
-                            const rate = roundTripRates.find(r => r.cabId === car.id);
-                            const minKm = rate?.minimumKm || 300;
-                            const days = parseInt(tripData.journeyDays) || 1;
-                            const allowedDistance = minKm * days;
-                            const totalDistance = priceCalculation.distance; // This is already distance * 2 for roundtrip
 
-                            if (totalDistance > allowedDistance) {
-                              return (
-                                <div className="mb-3 p-3 bg-red-500/20 border border-red-500/50 rounded-lg">
-                                  <p className="text-red-200 text-sm font-medium">
-                                    ⚠️ Trip exceeds daily limit
-                                  </p>
-                                  <p className="text-red-200/80 text-xs mt-1">
-                                    Total distance ({totalDistance}km) exceeds the allowed limit of {allowedDistance}km ({minKm}km/day × {days} days).
-                                    Please increase journey days.
-                                  </p>
-                                </div>
-                              );
-                            }
-                            return null;
-                          })()}
 
                           <div className="flex flex-wrap gap-2 mb-4">
                             <Badge className="rounded-full px-3 py-1 bg-white/20 text-white border border-white/30">
@@ -351,12 +328,7 @@ const CarList = ({ tripData, tripType, onSelectCar, onBack }: CarListProps) => {
                         <div className="flex flex-col sm:flex-row gap-3">
                           <Button
                             onClick={() => onSelectCar({ ...car, totalPrice: priceCalculation.totalPrice })}
-                            disabled={tripType === 'roundtrip' && (() => {
-                              const rate = roundTripRates.find(r => r.cabId === car.id);
-                              const minKm = rate?.minimumKm || 300;
-                              const days = parseInt(tripData.journeyDays) || 1;
-                              return priceCalculation.distance > (minKm * days);
-                            })()}
+                            disabled={false}
                             className="flex-1 !rounded-full font-semibold backdrop-blur-md bg-yellow-400/80 hover:bg-yellow-300/90 text-black border border-yellow-300/50 hover:border-yellow-200/70 transition-all duration-300 hover:scale-105 hover:shadow-xl relative overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                           >
                             <div className="absolute inset-0 bg-gradient-to-r from-yellow-200/20 via-yellow-100/30 to-yellow-200/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -381,7 +353,7 @@ const CarList = ({ tripData, tripType, onSelectCar, onBack }: CarListProps) => {
                               {tripType === 'roundtrip' && (
                                 <>
                                   <div className="flex justify-between">
-                                    <span className="text-white/70">Min Distance ({priceCalculation.distance} km):</span>
+                                    <span className="text-white/70">Distance Cost ({priceCalculation.distance} km):</span>
                                     <span className="font-semibold">₹{priceCalculation.breakdown.distanceFare}</span>
                                   </div>
                                 </>
@@ -407,7 +379,7 @@ const CarList = ({ tripData, tripType, onSelectCar, onBack }: CarListProps) => {
                             )}
                             {tripType === 'roundtrip' && (
                               <div className="text-xs text-white/50 mt-1 px-4">
-                                *Includes min. {roundTripRates.find(r => r.cabId === car.id)?.minimumKm || 300}km/day charge if applicable
+                                *Based on {car.minKm || 300}km per day limit
                               </div>
                             )}
                             <div className="border-t border-white/20 pt-2 flex justify-between font-bold text-white mt-2 px-4">

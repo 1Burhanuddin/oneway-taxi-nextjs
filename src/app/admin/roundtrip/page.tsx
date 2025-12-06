@@ -29,7 +29,7 @@ export default function RoundTripPage() {
   const [formData, setFormData] = useState({
     cabId: '',
     ratePerKm: 0,
-    minimumKm: 0,
+    minimumKm: 300, // Default to 300km per day
     driverAllowancePerDay: 0
   });
 
@@ -123,16 +123,16 @@ export default function RoundTripPage() {
       setEditingRate(rate);
       setFormData({
         cabId: rate.cabId,
-        ratePerKm: rate.ratePerKm,
-        minimumKm: rate.minimumKm,
-        driverAllowancePerDay: rate.driverAllowancePerDay
+        ratePerKm: rate.ratePerKm || 0,
+        minimumKm: rate.minimumKm || 300,
+        driverAllowancePerDay: rate.driverAllowancePerDay || 0
       });
     } else {
       setEditingRate(null);
       setFormData({
         cabId: '',
         ratePerKm: 0,
-        minimumKm: 0,
+        minimumKm: 300,
         driverAllowancePerDay: 0
       });
     }
@@ -237,8 +237,8 @@ export default function RoundTripPage() {
                 </div>
 
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-muted-foreground">Minimum KM</span>
-                  <span className="font-semibold text-foreground">{rate.minimumKm} km</span>
+                  <span className="text-sm text-muted-foreground">Max per day KMs</span>
+                  <span className="font-semibold text-foreground">{rate.minimumKm || 300} km</span>
                 </div>
 
                 <div className="flex justify-between items-center">
@@ -251,12 +251,12 @@ export default function RoundTripPage() {
 
               <div className="border-t pt-4 mb-4">
                 <div className="bg-muted/50 rounded-lg p-3">
-                  <p className="text-xs text-muted-foreground mb-1">Minimum Cost</p>
+                  <p className="text-xs text-muted-foreground mb-1">Approx cost per day</p>
                   <p className="text-lg font-bold text-primary">
-                    ₹{(rate.ratePerKm * rate.minimumKm + rate.driverAllowancePerDay).toLocaleString()}
+                    ₹{((rate.ratePerKm || 0) * (rate.minimumKm || 300) + (rate.driverAllowancePerDay || 0)).toLocaleString()}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    ({rate.minimumKm} km + driver allowance)
+                    ({rate.minimumKm || 300} km + driver allowance)
                   </p>
                 </div>
               </div>
@@ -377,19 +377,23 @@ export default function RoundTripPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-1">
-                    Minimum KM
+                    Max per day KMs
                   </label>
                   <input
                     type="number"
                     value={isNaN(formData.minimumKm) ? '' : formData.minimumKm}
                     onChange={(e) => {
                       const value = parseInt(e.target.value);
-                      setFormData({ ...formData, minimumKm: isNaN(value) ? 0 : value });
+                      setFormData({ ...formData, minimumKm: isNaN(value) ? 300 : value });
                     }}
                     className="w-full px-3 py-2 border border-input rounded-full focus:ring-2 focus:ring-primary focus:border-transparent"
-                    min="0"
+                    min="1"
+                    placeholder="300"
                     required
                   />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Maximum kilometers allowed per day for multi-day bookings
+                  </p>
                 </div>
 
                 <div>
@@ -412,12 +416,12 @@ export default function RoundTripPage() {
 
                 {formData.ratePerKm > 0 && formData.minimumKm > 0 && (
                   <div className="bg-primary/10 rounded-full p-3">
-                    <p className="text-sm text-primary font-medium">Minimum Trip Cost</p>
+                    <p className="text-sm text-primary font-medium">Daily Cost (Max KMs)</p>
                     <p className="text-lg font-bold text-primary-dark">
-                      ₹{(formData.ratePerKm * formData.minimumKm + formData.driverAllowancePerDay).toLocaleString()}
+                      ₹{((formData.ratePerKm || 0) * (formData.minimumKm || 300) + (formData.driverAllowancePerDay || 0)).toLocaleString()}
                     </p>
                     <p className="text-xs text-primary/80">
-                      {formData.minimumKm} km × ₹{formData.ratePerKm} + ₹{formData.driverAllowancePerDay} allowance
+                      {formData.minimumKm || 300} km × ₹{formData.ratePerKm || 0} + ₹{formData.driverAllowancePerDay || 0} allowance
                     </p>
                   </div>
                 )}

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Sidebar from './Sidebar'
+import { Toaster } from '../ui/toaster'
 
 interface AdminLayoutClientProps {
   admin: {
@@ -38,6 +39,8 @@ export default function AdminLayoutClient({ admin, children }: AdminLayoutClient
           {children}
         </main>
       </div>
+      
+      <Toaster />
     </div>
   )
 }

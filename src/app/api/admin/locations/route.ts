@@ -1,41 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '../../../../lib/prisma'
 
-// GET - List all locations
-export async function GET() {
-  try {
-    const locations = await prisma.location.findMany({
-      orderBy: { cityName: 'asc' }
-    })
-
-    return NextResponse.json(locations)
-  } catch (error) {
-    console.error('Failed to fetch locations:', error)
-    return NextResponse.json({ error: 'Failed to fetch locations' }, { status: 500 })
-  }
-}
-
-// POST - Create new location
 export async function POST(request: NextRequest) {
   try {
-    const data = await request.json()
-    const { cityName, state } = data
+    const body = await request.json()
+    const { cityName, state, isAirport } = body
 
-    // Validate required fields
-    if (!cityName) {
-      return NextResponse.json({ error: 'City name is required' }, { status: 400 })
+    if (!cityName || !state) {
+      return NextResponse.json(
+        { error: 'City name and state are required' },
+        { status: 400 }
+      )
     }
 
     const location = await prisma.location.create({
       data: {
         cityName,
-        state
+        state,
+        isAirport: isAirport || false
       }
     })
 
-    return NextResponse.json(location, { status: 201 })
+    return NextResponse.json(location)
   } catch (error) {
-    console.error('Failed to create location:', error)
-    return NextResponse.json({ error: 'Failed to create location' }, { status: 500 })
+    console.error('Error creating location:', error)
+    return NextResponse.json(
+      { error: 'Failed to create location' },
+      { status: 500 }
+    )
   }
 }

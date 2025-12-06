@@ -6,7 +6,8 @@ import { DeleteConfirmation } from '@/components/ui/delete-confirmation';
 
 interface Location {
   id: string;
-  cityName: string;
+  name: string;
+  cityName?: string; // fallback
 }
 
 interface Cab {
@@ -25,8 +26,16 @@ interface OneWayPackage {
   estimatedHours: number | null;
   estimatedMinutes: number | null;
   packageFeatures: string[];
-  source: Location;
-  destination: Location;
+  source: {
+    id: string;
+    name?: string;
+    cityName?: string;
+  };
+  destination: {
+    id: string;
+    name?: string;
+    cityName?: string;
+  };
   cab: (Cab & { features: string[] }) | null;
 }
 
@@ -72,8 +81,8 @@ export default function OneWayPackagesPage() {
     if (filterCabType && pkg.cabId?.toString() !== filterCabType) return false;
     return true;
   }).sort((a, b) => {
-    const sourceA = a.source?.cityName || '';
-    const sourceB = b.source?.cityName || '';
+    const sourceA = a.source?.name || a.source?.cityName || '';
+    const sourceB = b.source?.name || b.source?.cityName || '';
     return sourceA.localeCompare(sourceB);
   });
 
@@ -87,7 +96,7 @@ export default function OneWayPackagesPage() {
 
   // 3. Group paginated packages for display
   const groupedDisplay = paginatedPackages.reduce((acc, pkg) => {
-    const sourceName = pkg.source?.cityName || 'Unknown';
+    const sourceName = pkg.source?.name || pkg.source?.cityName || 'Unknown';
     if (!acc[sourceName]) {
       acc[sourceName] = [];
     }
@@ -104,15 +113,14 @@ export default function OneWayPackagesPage() {
     try {
       const [packagesRes, locationsRes, cabsRes] = await Promise.all([
         fetch('/api/admin/oneway-packages'),
-        fetch('/api/admin/locations'),
+        fetch('/api/cities'),
         fetch('/api/cabs')
       ]);
 
-      const [packagesData, locationsData, cabsData] = await Promise.all([
-        packagesRes.json(),
-        locationsRes.json(),
-        cabsRes.json()
-      ]);
+      // Check if responses are ok before parsing JSON
+      const packagesData = packagesRes.ok ? await packagesRes.json() : [];
+      const locationsData = locationsRes.ok ? await locationsRes.json() : [];
+      const cabsData = cabsRes.ok ? await cabsRes.json() : [];
 
       setPackages(Array.isArray(packagesData) ? packagesData : []);
       setLocations(Array.isArray(locationsData) ? locationsData : []);
@@ -261,7 +269,7 @@ export default function OneWayPackagesPage() {
         >
           <option value="">All Sources</option>
           {locations.map((loc) => (
-            <option key={loc.id} value={loc.id}>{loc.cityName}</option>
+            <option key={loc.id} value={loc.id}>{loc.name || loc.cityName}</option>
           ))}
         </select>
         <select
@@ -271,7 +279,7 @@ export default function OneWayPackagesPage() {
         >
           <option value="">All Destinations</option>
           {locations.map((loc) => (
-            <option key={loc.id} value={loc.id}>{loc.cityName}</option>
+            <option key={loc.id} value={loc.id}>{loc.name || loc.cityName}</option>
           ))}
         </select>
         <select
@@ -309,7 +317,7 @@ export default function OneWayPackagesPage() {
                       <div>
                         <h3 className="font-semibold text-card-foreground flex items-center gap-2">
                           <Route size={16} className="text-green-600" />
-                          {pkg.destination.cityName}
+                          {pkg.destination.name || pkg.destination.cityName}
                         </h3>
                         <p className="text-sm text-muted-foreground flex items-center gap-1 mt-1">
                           <Car size={14} />
@@ -497,7 +505,7 @@ export default function OneWayPackagesPage() {
                         <option value="">Select Source</option>
                         {Array.isArray(locations) && locations.map((location) => (
                           <option key={location.id} value={location.id}>
-                            {location.cityName}
+                            {location.name || location.cityName}
                           </option>
                         ))}
                       </select>
@@ -516,7 +524,7 @@ export default function OneWayPackagesPage() {
                         <option value="">Select Destination</option>
                         {locations.filter(loc => loc.id !== formData.sourceId).map((location) => (
                           <option key={location.id} value={location.id}>
-                            {location.cityName}
+                            {location.name || location.cityName}
                           </option>
                         ))}
                       </select>
