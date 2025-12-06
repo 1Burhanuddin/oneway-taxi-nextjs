@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { revalidatePath } from 'next/cache'
 
+export const dynamic = 'force-dynamic';
+
 // GET - List all local packages
 export async function GET() {
   try {
