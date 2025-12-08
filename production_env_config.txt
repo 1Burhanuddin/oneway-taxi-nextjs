@@ -1,0 +1,9 @@
+# Production Database Connection
+# Format: mysql://USER:PASSWORD@HOST:PORT/DATABASE
+DATABASE_URL="mysql://onewaytaxi110_user:YOUR_CPANEL_DB_PASSWORD@127.0.0.1:3306/onewaytaxi110_db"
+
+# JWT Secret (Keep this secure and consistent)
+JWT_SECRET="your-super-secret-jwt-key-change-this-in-production"
+
+# Next Auth / App URL
+NEXTAUTH_URL="https://your-domain.com"
