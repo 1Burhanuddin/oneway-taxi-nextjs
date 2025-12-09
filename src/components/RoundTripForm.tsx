@@ -63,7 +63,6 @@ const RoundTripForm = ({ onSubmit }: RoundTripFormProps) => {
       <div className="relative z-10">
         <h2 className="text-2xl font-bold mb-6 text-white text-center drop-shadow-lg">Round Trip</h2>
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* First row with 3 fields */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="pickupCity" className="text-white font-medium text-sm drop-shadow">
@@ -142,10 +141,7 @@ const RoundTripForm = ({ onSubmit }: RoundTripFormProps) => {
                 className="h-11 rounded-full border-2"
               />
             </div>
-          </div>
 
-          {/* Second row with 3 fields */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="journeyDays" className="text-white font-medium text-sm drop-shadow">
                 Journey Days
@@ -170,11 +166,11 @@ const RoundTripForm = ({ onSubmit }: RoundTripFormProps) => {
                 placeholder="Enter mobile number"
                 value={formData.mobile}
                 onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
-                className="h-11 rounded-lg border-2"
+                className="h-11 rounded-full border-2"
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 md:col-span-3">
               <Label htmlFor="location" className="text-white font-medium text-sm drop-shadow">
                 Enter Location
               </Label>
@@ -184,7 +180,7 @@ const RoundTripForm = ({ onSubmit }: RoundTripFormProps) => {
                 placeholder="Enter your location"
                 value={formData.location}
                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                className="h-11 rounded-lg border-2"
+                className="h-11 rounded-full border-2"
               />
             </div>
           </div>

@@ -12,7 +12,7 @@ const inter = Inter({ subsets: ['latin'] })
 export const metadata: Metadata = {
   title: 'Oneway Taxi Surat - Reliable Car Rental Services',
   description: 'Book reliable and affordable taxi services in Surat. Outstation cabs, local trips, airport transfers and more. Available 24x7.',
-  keywords: 'taxi surat, cab booking, car rental surat, outstation taxi, airport transfer',
+  keywords: 'taxi surat, cab booking, car rental surat, outstation taxi, airport cab, cab surat, cab mumbai',
 }
 
 export default function RootLayout({
