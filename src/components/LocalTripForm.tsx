@@ -22,7 +22,7 @@ const LocalTripForm = ({ onSubmit }: LocalTripFormProps) => {
   const [formData, setFormData] = useState({
     pickupCity: "",
     pickupCityId: "",
-    dropCity: "",
+    package: "",
     mobile: "",
   });
 
@@ -44,10 +44,15 @@ const LocalTripForm = ({ onSubmit }: LocalTripFormProps) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData.pickupCity && formData.dropCity && formData.mobile) {
+    if (formData.pickupCity && formData.package && formData.mobile) {
       onSubmit(formData);
     }
   };
+
+  const packages = [
+    "8 Hours / 80 Kms",
+    "12 Hours / 120 Kms"
+  ];
 
   return (
     <Card className="p-6 rounded-3xl shadow-2xl backdrop-blur-xl bg-white/10 border border-white/20 relative overflow-hidden">
@@ -87,17 +92,17 @@ const LocalTripForm = ({ onSubmit }: LocalTripFormProps) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="dropCity" className="text-white font-medium text-sm drop-shadow">
-                Drop City
+              <Label htmlFor="package" className="text-white font-medium text-sm drop-shadow">
+                Select Package
               </Label>
-              <Select value={formData.dropCity} onValueChange={(value) => setFormData({ ...formData, dropCity: value })}>
+              <Select value={formData.package} onValueChange={(value) => setFormData({ ...formData, package: value })}>
                 <SelectTrigger className="h-11 rounded-full border-2">
-                  <SelectValue placeholder="Select drop city" />
+                  <SelectValue placeholder="Select package" />
                 </SelectTrigger>
                 <SelectContent className="rounded-lg">
-                  {cities.map((city) => (
-                    <SelectItem key={city.id} value={city.name} className="rounded-md">
-                      {city.name}
+                  {packages.map((pkg) => (
+                    <SelectItem key={pkg} value={pkg} className="rounded-md">
+                      {pkg}
                     </SelectItem>
                   ))}
                 </SelectContent>
