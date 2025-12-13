@@ -82,7 +82,10 @@ const Contact = () => {
                                     </div>
                                     <div>
                                         <h3 className="font-semibold text-white mb-1 text-lg">Email</h3>
-                                        <a href="mailto:reservations@onewaytaxicabs.com" className="text-white/70 hover:text-yellow-400 transition-colors">reservations@onewaytaxicabs.com</a>
+                                        <div className="flex flex-col gap-1">
+                                            <a href="https://mail.google.com/mail/?view=cm&fs=1&to=reservations@onewaytaxicabs.com" target="_blank" rel="noopener noreferrer" className="text-white/70 hover:text-yellow-400 transition-colors">reservations@onewaytaxicabs.com</a>
+                                            <a href="https://mail.google.com/mail/?view=cm&fs=1&to=rajlaxmidhar175@gmail.com" target="_blank" rel="noopener noreferrer" className="text-white/70 hover:text-yellow-400 transition-colors">rajlaxmidhar175@gmail.com</a>
+                                        </div>
                                     </div>
                                 </div>
 

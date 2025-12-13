@@ -73,11 +73,14 @@ const Footer = () => {
                       </svg>
                       <a href="tel:+918511680364" className="hover:text-yellow-400 transition-colors">+91 85116 80364</a>
                     </p>
-                    <p className="flex items-center gap-2">
-                      <svg className="w-5 h-5 flex-shrink-0 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <p className="flex items-start gap-2">
+                      <svg className="w-5 h-5 mt-1 flex-shrink-0 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                       </svg>
-                      <a href="mailto:reservations@onewaytaxicabs.com" className="hover:text-yellow-400 transition-colors">reservations@onewaytaxicabs.com</a>
+                      <span className="flex flex-col gap-1">
+                        <a href="https://mail.google.com/mail/?view=cm&fs=1&to=reservations@onewaytaxicabs.com" target="_blank" rel="noopener noreferrer" className="hover:text-yellow-400 transition-colors">reservations@onewaytaxicabs.com</a>
+                        <a href="https://mail.google.com/mail/?view=cm&fs=1&to=rajlaxmidhar175@gmail.com" target="_blank" rel="noopener noreferrer" className="hover:text-yellow-400 transition-colors">rajlaxmidhar175@gmail.com</a>
+                      </span>
                     </p>
                     <p className="flex items-start gap-2">
                       <svg className="w-5 h-5 mt-1 flex-shrink-0 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

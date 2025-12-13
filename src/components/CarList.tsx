@@ -204,7 +204,7 @@ const CarList = ({ tripData, tripType, onSelectCar, onBack }: CarListProps) => {
       <div className="absolute inset-0 bg-black/40" />
       <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-accent/20" />
 
-      <div className="max-w-7xl mx-auto py-12 px-4 relative z-10">
+      <div className="max-w-7xl mx-auto pt-20 pb-6 px-2 relative z-10">
         {/* Back Button */}
         {onBack && (
           <Button
@@ -220,7 +220,7 @@ const CarList = ({ tripData, tripType, onSelectCar, onBack }: CarListProps) => {
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Sidebar */}
-          <Card className="lg:col-span-1 p-6 rounded-3xl h-fit sticky top-4 shadow-2xl backdrop-blur-xl bg-white/10 border border-white/20 relative overflow-hidden">
+          <Card className="lg:col-span-1 p-6 rounded-3xl h-fit sticky top-24 shadow-2xl backdrop-blur-xl bg-white/10 border border-white/20 relative overflow-hidden">
             {/* Liquid glass effect overlay */}
             <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-white/5 to-transparent rounded-3xl" />
             <div className="absolute inset-0 bg-gradient-to-tl from-primary/10 via-transparent to-accent/10 rounded-3xl" />
