@@ -62,34 +62,34 @@ const CarList = ({ tripData, tripType, onSelectCar, onBack }: CarListProps) => {
 
         if (tripType === 'oneway') {
           // data is OneWayPackage[]
-          mappedCars = data
-            .filter((pkg: any) => pkg.cab)
+          mappedCars = (Array.isArray(data) ? data : [])
+            .filter((pkg: any) => pkg && pkg.cab)
             .map((pkg: any) => ({
               id: pkg.id, // Use Package ID for unique key
-              cabId: pkg.cab.id,
-              name: pkg.cab.name,
-              type: pkg.cab.type,
-              capacity: pkg.cab.capacityPassengers,
+              cabId: pkg.cab?.id,
+              name: pkg.cab?.name || 'Unknown Cab',
+              type: pkg.cab?.type || 'Standard',
+              capacity: pkg.cab?.capacityPassengers || 4,
               pricePerKm: 0, // Not used for fixed price
-              image: pkg.cab.baseImageUrl,
-              features: JSON.stringify(pkg.cab.features),
+              image: pkg.cab?.baseImageUrl || '',
+              features: JSON.stringify(pkg.cab?.features || []),
               available: true,
               priceFixed: pkg.priceFixed,
               distance: pkg.distanceKm // Map distance from package
             }));
         } else if (tripType === 'local') {
           // data is LocalPackage[]
-          mappedCars = data
-            .filter((pkg: any) => pkg.cab)
+          mappedCars = (Array.isArray(data) ? data : [])
+            .filter((pkg: any) => pkg && pkg.cab)
             .map((pkg: any) => ({
               id: pkg.id, // Use Package ID for unique key
-              cabId: pkg.cab.id,
-              name: pkg.cab.name,
-              type: pkg.cab.type,
-              capacity: pkg.cab.capacityPassengers,
+              cabId: pkg.cab?.id,
+              name: pkg.cab?.name || 'Unknown Cab',
+              type: pkg.cab?.type || 'Standard',
+              capacity: pkg.cab?.capacityPassengers || 4,
               pricePerKm: 0,
-              image: pkg.cab.baseImageUrl,
-              features: JSON.stringify(pkg.cab.features),
+              image: pkg.cab?.baseImageUrl || '',
+              features: JSON.stringify(pkg.cab?.features || []),
               available: true,
               priceFixed: pkg.priceFixed,
               hoursIncluded: pkg.hoursIncluded,
@@ -99,22 +99,22 @@ const CarList = ({ tripData, tripType, onSelectCar, onBack }: CarListProps) => {
             }));
         } else if (tripType === 'roundtrip') {
           // data is RoundTripRate[]
-          mappedCars = data
-            .filter((rate: any) => rate.cab)
+          const validRates = (Array.isArray(data) ? data : []).filter((rate: any) => rate && rate.cab);
+          mappedCars = validRates
             .map((rate: any) => ({
               id: rate.id, // Use Rate ID for unique key
-              cabId: rate.cab.id,
-              name: rate.cab.name,
-              type: rate.cab.type,
-              capacity: rate.cab.capacityPassengers,
+              cabId: rate.cab?.id,
+              name: rate.cab?.name || 'Unknown Cab',
+              type: rate.cab?.type || 'Standard',
+              capacity: rate.cab?.capacityPassengers || 4,
               pricePerKm: rate.ratePerKm,
-              image: rate.cab.baseImageUrl,
-              features: JSON.stringify(rate.cab.features),
+              image: rate.cab?.baseImageUrl || '',
+              features: JSON.stringify(rate.cab?.features || []),
               available: true,
               minKm: rate.dailyKmLimit,
               driverAllowance: rate.driverAllowancePerDay
             }));
-          setRoundTripRates(data); // Keep raw rates for detailed calc if needed
+          setRoundTripRates(validRates); // Keep raw rates for detailed calc if needed
         }
 
         setCars(mappedCars);
