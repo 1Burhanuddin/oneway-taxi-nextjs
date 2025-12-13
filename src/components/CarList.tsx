@@ -62,52 +62,58 @@ const CarList = ({ tripData, tripType, onSelectCar, onBack }: CarListProps) => {
 
         if (tripType === 'oneway') {
           // data is OneWayPackage[]
-          mappedCars = data.map((pkg: any) => ({
-            id: pkg.id, // Use Package ID for unique key
-            cabId: pkg.cab.id,
-            name: pkg.cab.name,
-            type: pkg.cab.type,
-            capacity: pkg.cab.capacityPassengers,
-            pricePerKm: 0, // Not used for fixed price
-            image: pkg.cab.baseImageUrl,
-            features: JSON.stringify(pkg.cab.features),
-            available: true,
-            priceFixed: pkg.priceFixed,
-            distance: pkg.distanceKm // Map distance from package
-          }));
+          mappedCars = data
+            .filter((pkg: any) => pkg.cab)
+            .map((pkg: any) => ({
+              id: pkg.id, // Use Package ID for unique key
+              cabId: pkg.cab.id,
+              name: pkg.cab.name,
+              type: pkg.cab.type,
+              capacity: pkg.cab.capacityPassengers,
+              pricePerKm: 0, // Not used for fixed price
+              image: pkg.cab.baseImageUrl,
+              features: JSON.stringify(pkg.cab.features),
+              available: true,
+              priceFixed: pkg.priceFixed,
+              distance: pkg.distanceKm // Map distance from package
+            }));
         } else if (tripType === 'local') {
           // data is LocalPackage[]
-          mappedCars = data.map((pkg: any) => ({
-            id: pkg.id, // Use Package ID for unique key
-            cabId: pkg.cab.id,
-            name: pkg.cab.name,
-            type: pkg.cab.type,
-            capacity: pkg.cab.capacityPassengers,
-            pricePerKm: 0,
-            image: pkg.cab.baseImageUrl,
-            features: JSON.stringify(pkg.cab.features),
-            available: true,
-            priceFixed: pkg.priceFixed,
-            hoursIncluded: pkg.hoursIncluded,
-            kmIncluded: pkg.kmIncluded,
-            extraKmRate: pkg.extraKmRate,
-            extraHourRate: pkg.extraHourRate
-          }));
+          mappedCars = data
+            .filter((pkg: any) => pkg.cab)
+            .map((pkg: any) => ({
+              id: pkg.id, // Use Package ID for unique key
+              cabId: pkg.cab.id,
+              name: pkg.cab.name,
+              type: pkg.cab.type,
+              capacity: pkg.cab.capacityPassengers,
+              pricePerKm: 0,
+              image: pkg.cab.baseImageUrl,
+              features: JSON.stringify(pkg.cab.features),
+              available: true,
+              priceFixed: pkg.priceFixed,
+              hoursIncluded: pkg.hoursIncluded,
+              kmIncluded: pkg.kmIncluded,
+              extraKmRate: pkg.extraKmRate,
+              extraHourRate: pkg.extraHourRate
+            }));
         } else if (tripType === 'roundtrip') {
           // data is RoundTripRate[]
-          mappedCars = data.map((rate: any) => ({
-            id: rate.id, // Use Rate ID for unique key
-            cabId: rate.cab.id,
-            name: rate.cab.name,
-            type: rate.cab.type,
-            capacity: rate.cab.capacityPassengers,
-            pricePerKm: rate.ratePerKm,
-            image: rate.cab.baseImageUrl,
-            features: JSON.stringify(rate.cab.features),
-            available: true,
-            minKm: rate.dailyKmLimit,
-            driverAllowance: rate.driverAllowancePerDay
-          }));
+          mappedCars = data
+            .filter((rate: any) => rate.cab)
+            .map((rate: any) => ({
+              id: rate.id, // Use Rate ID for unique key
+              cabId: rate.cab.id,
+              name: rate.cab.name,
+              type: rate.cab.type,
+              capacity: rate.cab.capacityPassengers,
+              pricePerKm: rate.ratePerKm,
+              image: rate.cab.baseImageUrl,
+              features: JSON.stringify(rate.cab.features),
+              available: true,
+              minKm: rate.dailyKmLimit,
+              driverAllowance: rate.driverAllowancePerDay
+            }));
           setRoundTripRates(data); // Keep raw rates for detailed calc if needed
         }
 
