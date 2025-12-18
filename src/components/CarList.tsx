@@ -62,53 +62,59 @@ const CarList = ({ tripData, tripType, onSelectCar, onBack }: CarListProps) => {
 
         if (tripType === 'oneway') {
           // data is OneWayPackage[]
-          mappedCars = data.map((pkg: any) => ({
-            id: pkg.id, // Use Package ID for unique key
-            cabId: pkg.cab.id,
-            name: pkg.cab.name,
-            type: pkg.cab.type,
-            capacity: pkg.cab.capacityPassengers,
-            pricePerKm: 0, // Not used for fixed price
-            image: pkg.cab.baseImageUrl,
-            features: JSON.stringify(pkg.cab.features),
-            available: true,
-            priceFixed: pkg.priceFixed,
-            distance: pkg.distanceKm // Map distance from package
-          }));
+          mappedCars = (Array.isArray(data) ? data : [])
+            .filter((pkg: any) => pkg && pkg.cab)
+            .map((pkg: any) => ({
+              id: pkg.id, // Use Package ID for unique key
+              cabId: pkg.cab?.id,
+              name: pkg.cab?.name || 'Unknown Cab',
+              type: pkg.cab?.type || 'Standard',
+              capacity: pkg.cab?.capacityPassengers || 4,
+              pricePerKm: 0, // Not used for fixed price
+              image: pkg.cab?.baseImageUrl || '',
+              features: JSON.stringify(pkg.cab?.features || []),
+              available: true,
+              priceFixed: pkg.priceFixed,
+              distance: pkg.distanceKm // Map distance from package
+            }));
         } else if (tripType === 'local') {
           // data is LocalPackage[]
-          mappedCars = data.map((pkg: any) => ({
-            id: pkg.id, // Use Package ID for unique key
-            cabId: pkg.cab.id,
-            name: pkg.cab.name,
-            type: pkg.cab.type,
-            capacity: pkg.cab.capacityPassengers,
-            pricePerKm: 0,
-            image: pkg.cab.baseImageUrl,
-            features: JSON.stringify(pkg.cab.features),
-            available: true,
-            priceFixed: pkg.priceFixed,
-            hoursIncluded: pkg.hoursIncluded,
-            kmIncluded: pkg.kmIncluded,
-            extraKmRate: pkg.extraKmRate,
-            extraHourRate: pkg.extraHourRate
-          }));
+          mappedCars = (Array.isArray(data) ? data : [])
+            .filter((pkg: any) => pkg && pkg.cab)
+            .map((pkg: any) => ({
+              id: pkg.id, // Use Package ID for unique key
+              cabId: pkg.cab?.id,
+              name: pkg.cab?.name || 'Unknown Cab',
+              type: pkg.cab?.type || 'Standard',
+              capacity: pkg.cab?.capacityPassengers || 4,
+              pricePerKm: 0,
+              image: pkg.cab?.baseImageUrl || '',
+              features: JSON.stringify(pkg.cab?.features || []),
+              available: true,
+              priceFixed: pkg.priceFixed,
+              hoursIncluded: pkg.hoursIncluded,
+              kmIncluded: pkg.kmIncluded,
+              extraKmRate: pkg.extraKmRate,
+              extraHourRate: pkg.extraHourRate
+            }));
         } else if (tripType === 'roundtrip') {
           // data is RoundTripRate[]
-          mappedCars = data.map((rate: any) => ({
-            id: rate.id, // Use Rate ID for unique key
-            cabId: rate.cab.id,
-            name: rate.cab.name,
-            type: rate.cab.type,
-            capacity: rate.cab.capacityPassengers,
-            pricePerKm: rate.ratePerKm,
-            image: rate.cab.baseImageUrl,
-            features: JSON.stringify(rate.cab.features),
-            available: true,
-            minKm: rate.dailyKmLimit,
-            driverAllowance: rate.driverAllowancePerDay
-          }));
-          setRoundTripRates(data); // Keep raw rates for detailed calc if needed
+          const validRates = (Array.isArray(data) ? data : []).filter((rate: any) => rate && rate.cab);
+          mappedCars = validRates
+            .map((rate: any) => ({
+              id: rate.id, // Use Rate ID for unique key
+              cabId: rate.cab?.id,
+              name: rate.cab?.name || 'Unknown Cab',
+              type: rate.cab?.type || 'Standard',
+              capacity: rate.cab?.capacityPassengers || 4,
+              pricePerKm: rate.ratePerKm,
+              image: rate.cab?.baseImageUrl || '',
+              features: JSON.stringify(rate.cab?.features || []),
+              available: true,
+              minKm: rate.dailyKmLimit,
+              driverAllowance: rate.driverAllowancePerDay
+            }));
+          setRoundTripRates(validRates); // Keep raw rates for detailed calc if needed
         }
 
         setCars(mappedCars);
@@ -204,7 +210,7 @@ const CarList = ({ tripData, tripType, onSelectCar, onBack }: CarListProps) => {
       <div className="absolute inset-0 bg-black/40" />
       <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-accent/20" />
 
-      <div className="max-w-7xl mx-auto py-12 px-4 relative z-10">
+      <div className="max-w-7xl mx-auto pt-20 pb-6 px-2 relative z-10">
         {/* Back Button */}
         {onBack && (
           <Button
@@ -218,9 +224,9 @@ const CarList = ({ tripData, tripType, onSelectCar, onBack }: CarListProps) => {
           </Button>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8 items-start">
           {/* Sidebar */}
-          <Card className="lg:col-span-1 p-6 rounded-3xl h-fit sticky top-4 shadow-2xl backdrop-blur-xl bg-white/10 border border-white/20 relative overflow-hidden">
+          <Card className="md:col-span-1 p-6 rounded-3xl h-fit md:sticky md:top-24 shadow-2xl backdrop-blur-xl bg-white/10 border border-white/20 relative overflow-hidden">
             {/* Liquid glass effect overlay */}
             <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-white/5 to-transparent rounded-3xl" />
             <div className="absolute inset-0 bg-gradient-to-tl from-primary/10 via-transparent to-accent/10 rounded-3xl" />
@@ -228,40 +234,40 @@ const CarList = ({ tripData, tripType, onSelectCar, onBack }: CarListProps) => {
             <div className="relative z-10">
               <h3 className="text-xl font-bold mb-4 text-white drop-shadow-lg">Trip Details</h3>
               <div className="space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-white/70">Trip Type:</span>
-                  <span className="font-semibold text-white capitalize">{tripType}</span>
+                <div className="flex justify-between items-start gap-4">
+                  <span className="text-white/70 shrink-0">Trip Type:</span>
+                  <span className="font-semibold text-white capitalize text-right">{tripType}</span>
                 </div>
                 {tripData.pickupCity && (
-                  <div className="flex justify-between">
-                    <span className="text-white/70">From:</span>
-                    <span className="font-semibold text-white">{tripData.pickupCity}</span>
+                  <div className="flex justify-between items-start gap-4">
+                    <span className="text-white/70 shrink-0">From:</span>
+                    <span className="font-semibold text-white text-right break-words">{tripData.pickupCity}</span>
                   </div>
                 )}
                 {tripData.dropCity && (
-                  <div className="flex justify-between">
-                    <span className="text-white/70">To:</span>
-                    <span className="font-semibold text-white">{tripData.dropCity}</span>
+                  <div className="flex justify-between items-start gap-4">
+                    <span className="text-white/70 shrink-0">To:</span>
+                    <span className="font-semibold text-white text-right break-words">{tripData.dropCity}</span>
                   </div>
                 )}
                 {tripData.pickupCity && tripData.dropCity && tripType !== 'local' && (
-                  <div className="flex justify-between">
-                    <span className="text-white/70">Distance:</span>
-                    <span className="font-semibold text-white">{calculatePrice(cars[0] || { pricePerKm: 10 } as Car).distance} km</span>
+                  <div className="flex justify-between items-start gap-4">
+                    <span className="text-white/70 shrink-0">Distance:</span>
+                    <span className="font-semibold text-white text-right">{calculatePrice(cars[0] || { pricePerKm: 10 } as Car).distance} km</span>
                   </div>
                 )}
-                <div className="flex justify-between">
-                  <span className="text-white/70">Date:</span>
-                  <span className="font-semibold text-white">{new Date().toLocaleDateString()}</span>
+                <div className="flex justify-between items-start gap-4">
+                  <span className="text-white/70 shrink-0">Date:</span>
+                  <span className="font-semibold text-white text-right">{new Date().toLocaleDateString()}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-white/70">Time:</span>
-                  <span className="font-semibold text-white">{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                <div className="flex justify-between items-start gap-4">
+                  <span className="text-white/70 shrink-0">Time:</span>
+                  <span className="font-semibold text-white text-right">{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                 </div>
                 {tripData.mobile && (
-                  <div className="flex justify-between">
-                    <span className="text-white/70">Mobile:</span>
-                    <span className="font-semibold text-white">{tripData.mobile}</span>
+                  <div className="flex justify-between items-start gap-4">
+                    <span className="text-white/70 shrink-0">Mobile:</span>
+                    <span className="font-semibold text-white text-right">{tripData.mobile}</span>
                   </div>
                 )}
               </div>
@@ -269,7 +275,7 @@ const CarList = ({ tripData, tripType, onSelectCar, onBack }: CarListProps) => {
           </Card>
 
           {/* Car List */}
-          <div className="lg:col-span-3 space-y-6">
+          <div className="md:col-span-2 lg:col-span-3 space-y-6">
             {cars.map((car) => {
               const priceCalculation = calculatePrice(car);
               const features = parseFeatures(car.features);
@@ -281,7 +287,7 @@ const CarList = ({ tripData, tripType, onSelectCar, onBack }: CarListProps) => {
                   <div className="absolute inset-0 bg-gradient-to-tl from-primary/10 via-transparent to-accent/10 rounded-3xl" />
 
                   <div className="relative z-10">
-                    <div className="flex flex-col md:flex-row gap-6">
+                    <div className="flex flex-col md:flex-row gap-6 items-start">
                       <div className="md:w-1/3">
                         <img
                           src={car.image || "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400&h=300&fit=crop"}

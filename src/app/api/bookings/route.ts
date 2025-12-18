@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '../../../lib/prisma'
 import { TripType } from '@prisma/client'
+import { sendBookingConfirmation, sendAdminNotification } from '../../../lib/email'
 
 export async function GET() {
   try {
@@ -105,6 +106,16 @@ export async function POST(request: NextRequest) {
         localPackage: true
       }
     })
+
+    // Send confirmation emails (don't fail booking if email fails)
+    try {
+      await sendBookingConfirmation(booking);
+      await sendAdminNotification(booking);
+      console.log('Booking confirmation emails sent successfully');
+    } catch (emailError) {
+      console.error('Failed to send booking confirmation emails:', emailError);
+      // Continue - booking was successful even if email failed
+    }
 
     return NextResponse.json(booking, { status: 201 })
   } catch (error) {

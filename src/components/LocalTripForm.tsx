@@ -4,8 +4,23 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { Check, ChevronsUpDown } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 interface City {
   id: number;
@@ -19,10 +34,11 @@ interface LocalTripFormProps {
 
 const LocalTripForm = ({ onSubmit }: LocalTripFormProps) => {
   const [cities, setCities] = useState<City[]>([]);
+  const [openPickup, setOpenPickup] = useState(false)
   const [formData, setFormData] = useState({
     pickupCity: "",
     pickupCityId: "",
-    dropCity: "",
+    package: "",
     mobile: "",
   });
 
@@ -44,10 +60,15 @@ const LocalTripForm = ({ onSubmit }: LocalTripFormProps) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData.pickupCity && formData.dropCity && formData.mobile) {
+    if (formData.pickupCity && formData.package && formData.mobile) {
       onSubmit(formData);
     }
   };
+
+  const packages = [
+    "8 Hours / 80 Kms",
+    "12 Hours / 120 Kms"
+  ];
 
   return (
     <Card className="p-6 rounded-3xl shadow-2xl backdrop-blur-xl bg-white/10 border border-white/20 relative overflow-hidden">
@@ -64,40 +85,67 @@ const LocalTripForm = ({ onSubmit }: LocalTripFormProps) => {
               <Label htmlFor="pickupCity" className="text-white font-medium text-sm drop-shadow">
                 Pickup City
               </Label>
-              <Select
-                value={formData.pickupCityId}
-                onValueChange={(value) => {
-                  const city = cities.find(c => c.id.toString() === value);
-                  if (city) {
-                    setFormData({ ...formData, pickupCity: city.name, pickupCityId: value });
-                  }
-                }}
-              >
-                <SelectTrigger className="h-11 rounded-full border-2">
-                  <SelectValue placeholder="Select pickup city" />
-                </SelectTrigger>
-                <SelectContent className="rounded-lg">
-                  {cities.map((city) => (
-                    <SelectItem key={city.id} value={city.id.toString()} className="rounded-md">
-                      {city.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Popover open={openPickup} onOpenChange={setOpenPickup}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={openPickup}
+                    className="w-full h-11 justify-between rounded-full border-2 bg-white text-black"
+                  >
+                    {formData.pickupCityId
+                      ? cities.find((city) => city.id.toString() === formData.pickupCityId)?.name
+                      : "Select pickup city"}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[300px] p-0">
+                  <Command>
+                    <CommandInput placeholder="Search city..." />
+                    <CommandList>
+                      <CommandEmpty>No city found.</CommandEmpty>
+                      <CommandGroup>
+                        {cities.map((city) => (
+                          <CommandItem
+                            key={city.id}
+                            value={city.name}
+                            onSelect={() => {
+                              setFormData({
+                                ...formData,
+                                pickupCity: city.name,
+                                pickupCityId: city.id.toString()
+                              })
+                              setOpenPickup(false)
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                formData.pickupCityId === city.id.toString() ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {city.name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="dropCity" className="text-white font-medium text-sm drop-shadow">
-                Drop City
+              <Label htmlFor="package" className="text-white font-medium text-sm drop-shadow">
+                Select Package
               </Label>
-              <Select value={formData.dropCity} onValueChange={(value) => setFormData({ ...formData, dropCity: value })}>
+              <Select value={formData.package} onValueChange={(value) => setFormData({ ...formData, package: value })}>
                 <SelectTrigger className="h-11 rounded-full border-2">
-                  <SelectValue placeholder="Select drop city" />
+                  <SelectValue placeholder="Select package" />
                 </SelectTrigger>
                 <SelectContent className="rounded-lg">
-                  {cities.map((city) => (
-                    <SelectItem key={city.id} value={city.name} className="rounded-md">
-                      {city.name}
+                  {packages.map((pkg) => (
+                    <SelectItem key={pkg} value={pkg} className="rounded-md">
+                      {pkg}
                     </SelectItem>
                   ))}
                 </SelectContent>

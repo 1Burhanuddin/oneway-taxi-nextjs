@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Car, Clock, MapPin, DollarSign } from 'lucide-react';
+import { toast } from "sonner";
 
 interface Cab {
   id: string;
@@ -48,7 +49,7 @@ export default function LocalPackagesPage() {
 
   // Filter and Paginate Packages
   const filteredPackages = packages.filter(pkg => {
-    if (filterCabType && pkg.cabId !== filterCabType) return false;
+    if (filterCabType && String(pkg.cabId) !== String(filterCabType)) return false;
     return true;
   }).sort((a, b) => a.cab.name.localeCompare(b.cab.name));
 
@@ -102,10 +103,13 @@ export default function LocalPackagesPage() {
 
       if (response.ok) {
         await fetchData();
+        await fetchData();
         closeModal();
+        toast.success(editingPackage ? 'Package updated successfully' : 'Package created successfully');
       }
     } catch (error) {
       console.error('Error saving package:', error);
+      toast.error('Failed to save package');
     }
   };
 
@@ -116,9 +120,11 @@ export default function LocalPackagesPage() {
       const response = await fetch(`/api/admin/local-packages/${id}`, { method: 'DELETE' });
       if (response.ok) {
         await fetchData();
+        toast.success('Package deleted successfully');
       }
     } catch (error) {
       console.error('Error deleting package:', error);
+      toast.error('Failed to delete package');
     }
   };
 
@@ -218,7 +224,7 @@ export default function LocalPackagesPage() {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
           {paginatedPackages.map((pkg) => (
             <div
               key={pkg.id}

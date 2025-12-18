@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import Link from 'next/link';
+import BookingInquiryDialog from "@/components/BookingInquiryDialog";
 
 interface Cab {
     id: number;
@@ -17,6 +19,8 @@ interface Cab {
 const FleetSection = () => {
     const [cabs, setCabs] = useState<Cab[]>([]);
     const [loading, setLoading] = useState(true);
+    const [selectedCab, setSelectedCab] = useState<Cab | null>(null);
+    const [isInquiryOpen, setIsInquiryOpen] = useState(false);
 
     useEffect(() => {
         const fetchCabs = async () => {
@@ -40,6 +44,11 @@ const FleetSection = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
+    const handleBookNow = (cab: Cab) => {
+        setSelectedCab(cab);
+        setIsInquiryOpen(true);
+    };
+
     const parseFeatures = (features: any) => {
         if (!features) return [];
         if (typeof features === 'string') {
@@ -60,21 +69,22 @@ const FleetSection = () => {
         <section className="relative py-20 overflow-hidden min-h-screen">
             {/* Background Image */}
             <div
-                className="absolute inset-0 bg-cover bg-center bg-no-repeat bg-fixed"
+                className="absolute inset-0 bg-cover bg-center bg-no-repeat bg-fixed "
                 style={{
                     backgroundImage: `url('https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80')`
                 }}
             />
             {/* Background overlays */}
-            <div className="absolute inset-0 bg-black/60" />
             {/* Removed colored gradient as per user request */}
 
             <div className="container mx-auto px-4 relative z-10">
                 <div className="text-center mb-12">
-                    <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 drop-shadow-lg">Our Premium Fleet</h2>
-                    <p className="text-lg text-white/80 max-w-2xl mx-auto drop-shadow">
-                        Choose from our wide range of comfortable and well-maintained vehicles for your journey.
-                    </p>
+                    <div className="inline-block p-8 rounded-3xl backdrop-blur-xl border border-white/10 shadow-xl w-full bg-gradient-to-tl from-primary/10 via-transparent to-accent/10">
+                        <h2 className="text-3xl md:text-4xl font-bold text-white mb-4 drop-shadow-lg">Our Premium Fleet</h2>
+                        <p className="text-lg text-white/80 max-w-2xl mx-auto drop-shadow">
+                            Choose from our wide range of comfortable and well-maintained vehicles for your journey.
+                        </p>
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -129,7 +139,7 @@ const FleetSection = () => {
                                 </div>
 
                                 <Button
-                                    onClick={scrollToTop}
+                                    onClick={() => handleBookNow(cab)}
                                     className="w-full !rounded-full font-semibold backdrop-blur-md bg-yellow-400/80 hover:bg-yellow-300/90 text-black border border-yellow-300/50 hover:border-yellow-200/70 transition-all duration-300 hover:scale-105 hover:shadow-xl relative overflow-hidden group h-12 text-lg"
                                 >
                                     <div className="absolute inset-0 bg-gradient-to-r from-yellow-200/20 via-yellow-100/30 to-yellow-200/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -140,8 +150,15 @@ const FleetSection = () => {
                     ))}
                 </div>
             </div>
+            <BookingInquiryDialog
+                isOpen={isInquiryOpen}
+                onClose={() => setIsInquiryOpen(false)}
+                cabName={selectedCab?.name || ''}
+            />
         </section>
     );
 };
 
 export default FleetSection;
+
+

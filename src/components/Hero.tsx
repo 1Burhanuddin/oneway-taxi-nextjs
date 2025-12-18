@@ -19,10 +19,10 @@ const Hero = ({ onSelectTripType, children, activeTripType = 'oneway' }: HeroPro
       />
 
       {/* Overlay */}
-      <div className="absolute inset-0 bg-black/40" />
+      <div className="absolute inset-0 z-0" />
 
       {/* Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-accent/20" />
+      <div className="absolute inset-0 z-0" />
 
       <div className="container mx-auto px-4 relative z-10 flex-1 flex flex-col">
         {/* Header Section */}
