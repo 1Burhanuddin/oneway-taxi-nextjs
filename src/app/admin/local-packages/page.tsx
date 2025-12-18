@@ -49,9 +49,14 @@ export default function LocalPackagesPage() {
 
   // Filter and Paginate Packages
   const filteredPackages = packages.filter(pkg => {
+    // Only show packages with valid cab data
+    if (!pkg.cab || !pkg.cab.name) return false;
     if (filterCabType && String(pkg.cabId) !== String(filterCabType)) return false;
     return true;
-  }).sort((a, b) => a.cab.name.localeCompare(b.cab.name));
+  }).sort((a, b) => {
+    // Safe sorting since we've already filtered out null cabs
+    return a.cab.name.localeCompare(b.cab.name);
+  });
 
   const totalItems = filteredPackages.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
@@ -72,15 +77,25 @@ export default function LocalPackagesPage() {
         fetch('/api/cabs')
       ]);
 
+      if (!packagesRes.ok || !cabsRes.ok) {
+        throw new Error('Failed to fetch data from API');
+      }
+
       const [packagesData, cabsData] = await Promise.all([
         packagesRes.json(),
         cabsRes.json()
       ]);
 
-      setPackages(Array.isArray(packagesData) ? packagesData : []);
+      // Ensure we have valid arrays and filter out any packages without cab data
+      const validPackages = Array.isArray(packagesData) 
+        ? packagesData.filter(pkg => pkg && pkg.cab && pkg.cab.name) 
+        : [];
+      
+      setPackages(validPackages);
       setCabs(Array.isArray(cabsData) ? cabsData : []);
     } catch (error) {
       console.error('Error fetching data:', error);
+      toast.error('Failed to load packages data');
       setPackages([]);
       setCabs([]);
     } finally {
@@ -237,8 +252,8 @@ export default function LocalPackagesPage() {
                     <Car size={20} className="text-primary-foreground" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold leading-tight">{pkg.cab.name}</h3>
-                    <p className="text-primary-foreground/80 text-xs mt-0.5">{pkg.cab.type}</p>
+                    <h3 className="text-lg font-bold leading-tight">{pkg.cab?.name || 'Unknown Cab'}</h3>
+                    <p className="text-primary-foreground/80 text-xs mt-0.5">{pkg.cab?.type || 'Unknown Type'}</p>
                   </div>
                 </div>
               </div>
