@@ -113,11 +113,7 @@ export default function LocationsPage() {
       }
     } catch (error) {
       console.error('Failed to save location:', error)
-      toast({
-        title: "Error",
-        description: 'Failed to save location',
-        variant: "destructive",
-      })
+      toast.error('Failed to save location');
     } finally {
       setSubmitting(false)
     }

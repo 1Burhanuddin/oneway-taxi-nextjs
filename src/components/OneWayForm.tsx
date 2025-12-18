@@ -44,30 +44,30 @@ const OneWayForm = ({ onSubmit }: OneWayFormProps) => {
   });
 
   useEffect(() => {
+    const fetchCities = async () => {
+      console.log('🚀 OneWayForm: Fetching cities...');
+      try {
+        console.log('📡 OneWayForm: Making request to /api/cities');
+        const response = await fetch('/api/cities');
+        console.log('📊 OneWayForm: Response status:', response.status);
+        console.log('📋 OneWayForm: Response ok:', response.ok);
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log('✅ OneWayForm: Cities received:', data.length);
+          console.log('🏙️ OneWayForm: Cities data:', data);
+          setCities(data);
+        } else {
+          const errorText = await response.text();
+          console.error('❌ OneWayForm: Response not ok:', response.status, errorText);
+        }
+      } catch (error) {
+        console.error('❌ OneWayForm: Failed to fetch cities:', error);
+      }
+    };
+
     fetchCities();
   }, []);
-
-  const fetchCities = async () => {
-    console.log('🚀 OneWayForm: Fetching cities...');
-    try {
-      console.log('📡 OneWayForm: Making request to /api/cities');
-      const response = await fetch('/api/cities');
-      console.log('📊 OneWayForm: Response status:', response.status);
-      console.log('📋 OneWayForm: Response ok:', response.ok);
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ OneWayForm: Cities received:', data.length);
-        console.log('🏙️ OneWayForm: Cities data:', data);
-        setCities(data);
-      } else {
-        const errorText = await response.text();
-        console.error('❌ OneWayForm: Response not ok:', response.status, errorText);
-      }
-    } catch (error) {
-      console.error('❌ OneWayForm: Failed to fetch cities:', error);
-    }
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

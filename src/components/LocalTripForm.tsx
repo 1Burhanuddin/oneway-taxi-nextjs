@@ -43,20 +43,20 @@ const LocalTripForm = ({ onSubmit }: LocalTripFormProps) => {
   });
 
   useEffect(() => {
+    const fetchCities = async () => {
+      try {
+        const response = await fetch('/api/cities');
+        if (response.ok) {
+          const data = await response.json();
+          setCities(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch cities:', error);
+      }
+    };
+
     fetchCities();
   }, []);
-
-  const fetchCities = async () => {
-    try {
-      const response = await fetch('/api/cities');
-      if (response.ok) {
-        const data = await response.json();
-        setCities(data);
-      }
-    } catch (error) {
-      console.error('Failed to fetch cities:', error);
-    }
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

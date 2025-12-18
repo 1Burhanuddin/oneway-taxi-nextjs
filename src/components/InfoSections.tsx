@@ -35,7 +35,7 @@ const InfoSections = () => {
                 </p>
                 <p className="mb-4 drop-shadow">
                   Our fleet of well-maintained vehicles and professional drivers ensure that every journey with us is
-                  pleasant and hassle-free. Whether it's a quick city ride or a long-distance journey, we've got you covered.
+                  pleasant and hassle-free. Whether it&apos;s a quick city ride or a long-distance journey, we&apos;ve got you covered.
                 </p>
                 <p className="drop-shadow">
                   Customer satisfaction is at the heart of everything we do. We continuously strive to improve our services
