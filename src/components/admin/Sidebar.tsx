@@ -82,8 +82,11 @@ export default function Sidebar({ admin }: SidebarProps) {
 
   // Close mobile sidebar when route changes
   useEffect(() => {
-    setIsMobileOpen(false)
-  }, [pathname])
+    if (isMobileOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setIsMobileOpen(false)
+    }
+  }, [pathname, isMobileOpen])
 
   // Handle responsive behavior
   useEffect(() => {

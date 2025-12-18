@@ -103,6 +103,19 @@ export async function DELETE(
 
 
 
+    // Cascade delete related packages and rates
+    await prisma.oneWayPackage.deleteMany({
+      where: { cabId: cabId }
+    });
+
+    await prisma.localPackage.deleteMany({
+      where: { cabId: cabId }
+    });
+
+    await prisma.roundTripRate.deleteMany({
+      where: { cabId: cabId }
+    });
+
     await prisma.cab.delete({
       where: { id: cabId }
     });

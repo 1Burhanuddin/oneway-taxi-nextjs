@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Car, MapPin, DollarSign } from 'lucide-react';
+import { toast } from "sonner";
 
 interface Cab {
   id: string;
@@ -99,9 +100,11 @@ export default function RoundTripPage() {
       if (response.ok) {
         await fetchData();
         closeModal();
+        toast.success(editingRate ? 'Rate updated successfully' : 'Rate created successfully');
       }
     } catch (error) {
       console.error('Error saving rate:', error);
+      toast.error('Failed to save rate');
     }
   };
 
@@ -112,9 +115,11 @@ export default function RoundTripPage() {
       const response = await fetch(`/api/admin/roundtrip-rates/${id}`, { method: 'DELETE' });
       if (response.ok) {
         await fetchData();
+        toast.success('Rate deleted successfully');
       }
     } catch (error) {
       console.error('Error deleting rate:', error);
+      toast.error('Failed to delete rate');
     }
   };
 
@@ -211,7 +216,7 @@ export default function RoundTripPage() {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
           {paginatedRates.map((rate) => (
             <div
               key={rate.id}

@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import Link from 'next/link';
+import BookingInquiryDialog from "@/components/BookingInquiryDialog";
 
 interface Cab {
     id: number;
@@ -17,6 +19,8 @@ interface Cab {
 const FleetSection = () => {
     const [cabs, setCabs] = useState<Cab[]>([]);
     const [loading, setLoading] = useState(true);
+    const [selectedCab, setSelectedCab] = useState<Cab | null>(null);
+    const [isInquiryOpen, setIsInquiryOpen] = useState(false);
 
     useEffect(() => {
         const fetchCabs = async () => {
@@ -38,6 +42,11 @@ const FleetSection = () => {
 
     const scrollToTop = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const handleBookNow = (cab: Cab) => {
+        setSelectedCab(cab);
+        setIsInquiryOpen(true);
     };
 
     const parseFeatures = (features: any) => {
@@ -130,7 +139,7 @@ const FleetSection = () => {
                                 </div>
 
                                 <Button
-                                    onClick={scrollToTop}
+                                    onClick={() => handleBookNow(cab)}
                                     className="w-full !rounded-full font-semibold backdrop-blur-md bg-yellow-400/80 hover:bg-yellow-300/90 text-black border border-yellow-300/50 hover:border-yellow-200/70 transition-all duration-300 hover:scale-105 hover:shadow-xl relative overflow-hidden group h-12 text-lg"
                                 >
                                     <div className="absolute inset-0 bg-gradient-to-r from-yellow-200/20 via-yellow-100/30 to-yellow-200/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -141,8 +150,15 @@ const FleetSection = () => {
                     ))}
                 </div>
             </div>
+            <BookingInquiryDialog
+                isOpen={isInquiryOpen}
+                onClose={() => setIsInquiryOpen(false)}
+                cabName={selectedCab?.name || ''}
+            />
         </section>
     );
 };
 
 export default FleetSection;
+
+

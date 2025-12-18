@@ -4,8 +4,23 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { Check, ChevronsUpDown } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 interface City {
   id: number;
@@ -19,6 +34,7 @@ interface LocalTripFormProps {
 
 const LocalTripForm = ({ onSubmit }: LocalTripFormProps) => {
   const [cities, setCities] = useState<City[]>([]);
+  const [openPickup, setOpenPickup] = useState(false)
   const [formData, setFormData] = useState({
     pickupCity: "",
     pickupCityId: "",
@@ -27,20 +43,20 @@ const LocalTripForm = ({ onSubmit }: LocalTripFormProps) => {
   });
 
   useEffect(() => {
+    const fetchCities = async () => {
+      try {
+        const response = await fetch('/api/cities');
+        if (response.ok) {
+          const data = await response.json();
+          setCities(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch cities:', error);
+      }
+    };
+
     fetchCities();
   }, []);
-
-  const fetchCities = async () => {
-    try {
-      const response = await fetch('/api/cities');
-      if (response.ok) {
-        const data = await response.json();
-        setCities(data);
-      }
-    } catch (error) {
-      console.error('Failed to fetch cities:', error);
-    }
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,26 +85,53 @@ const LocalTripForm = ({ onSubmit }: LocalTripFormProps) => {
               <Label htmlFor="pickupCity" className="text-white font-medium text-sm drop-shadow">
                 Pickup City
               </Label>
-              <Select
-                value={formData.pickupCityId}
-                onValueChange={(value) => {
-                  const city = cities.find(c => c.id.toString() === value);
-                  if (city) {
-                    setFormData({ ...formData, pickupCity: city.name, pickupCityId: value });
-                  }
-                }}
-              >
-                <SelectTrigger className="h-11 rounded-full border-2">
-                  <SelectValue placeholder="Select pickup city" />
-                </SelectTrigger>
-                <SelectContent className="rounded-lg">
-                  {cities.map((city) => (
-                    <SelectItem key={city.id} value={city.id.toString()} className="rounded-md">
-                      {city.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Popover open={openPickup} onOpenChange={setOpenPickup}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={openPickup}
+                    className="w-full h-11 justify-between rounded-full border-2 bg-white text-black"
+                  >
+                    {formData.pickupCityId
+                      ? cities.find((city) => city.id.toString() === formData.pickupCityId)?.name
+                      : "Select pickup city"}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[300px] p-0">
+                  <Command>
+                    <CommandInput placeholder="Search city..." />
+                    <CommandList>
+                      <CommandEmpty>No city found.</CommandEmpty>
+                      <CommandGroup>
+                        {cities.map((city) => (
+                          <CommandItem
+                            key={city.id}
+                            value={city.name}
+                            onSelect={() => {
+                              setFormData({
+                                ...formData,
+                                pickupCity: city.name,
+                                pickupCityId: city.id.toString()
+                              })
+                              setOpenPickup(false)
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                formData.pickupCityId === city.id.toString() ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {city.name}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
 
             <div className="space-y-2">

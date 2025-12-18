@@ -7,7 +7,17 @@ import { Input } from '../../../components/ui/input'
 import { Label } from '../../../components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../../components/ui/select'
 import { Checkbox } from '../../../components/ui/checkbox'
-import { useToast } from '../../../hooks/use-toast'
+import { toast } from "sonner";
+import { DeleteConfirmation } from '@/components/ui/delete-confirmation';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 
 interface Location {
   id: number
@@ -25,7 +35,7 @@ interface Location {
 
 export default function LocationsPage() {
   const [locations, setLocations] = useState<Location[]>([])
-  const [showForm, setShowForm] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [formData, setFormData] = useState({
@@ -35,7 +45,12 @@ export default function LocationsPage() {
     customCity: false
   })
   const [editingLocation, setEditingLocation] = useState<Location | null>(null)
-  const { toast } = useToast()
+
+  // Delete modal state
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
 
   const states = [
     'Gujarat', 'Maharashtra', 'Rajasthan', 'Madhya Pradesh', 'Karnataka',
@@ -71,11 +86,11 @@ export default function LocationsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setSubmitting(true)
-    
+
     try {
       const url = editingLocation ? `/api/admin/locations/${editingLocation.id}` : '/api/admin/locations'
       const method = editingLocation ? 'PUT' : 'POST'
-      
+
       const response = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
@@ -88,28 +103,17 @@ export default function LocationsPage() {
 
       if (response.ok) {
         setFormData({ cityName: '', state: '', isAirport: false, customCity: false })
-        setShowForm(false)
+        setIsModalOpen(false)
         setEditingLocation(null)
         fetchLocations()
-        toast({
-          title: "Success",
-          description: `Location ${editingLocation ? 'updated' : 'created'} successfully.`,
-        })
+        toast.success(`Location ${editingLocation ? 'updated' : 'created'} successfully.`);
       } else {
         const error = await response.json()
-        toast({
-          title: "Error",
-          description: error.error || 'Failed to save location',
-          variant: "destructive",
-        })
+        toast.error(error.error || 'Failed to save location');
       }
     } catch (error) {
       console.error('Failed to save location:', error)
-      toast({
-        title: "Error",
-        description: 'Failed to save location',
-        variant: "destructive",
-      })
+      toast.error('Failed to save location');
     } finally {
       setSubmitting(false)
     }
@@ -123,38 +127,43 @@ export default function LocationsPage() {
       isAirport: location.isAirport,
       customCity: !commonCities.includes(location.name || location.cityName || '')
     })
-    setShowForm(true)
+    setIsModalOpen(true)
   }
 
-  const handleDelete = async (locationId: number) => {
-    if (!confirm('Are you sure you want to delete this location?')) return
-    
+  const openModal = () => {
+    setEditingLocation(null)
+    setFormData({ cityName: '', state: '', isAirport: false, customCity: false })
+    setIsModalOpen(true)
+  }
+
+  const handleDelete = (locationId: number) => {
+    setDeleteId(locationId);
+    setIsDeleteModalOpen(true);
+  }
+
+  const confirmDelete = async () => {
+    if (!deleteId) return;
+
+    setIsDeleting(true);
     try {
-      const response = await fetch(`/api/admin/locations/${locationId}`, {
+      const response = await fetch(`/api/admin/locations/${deleteId}`, {
         method: 'DELETE'
       })
-      
+
       if (response.ok) {
         fetchLocations()
-        toast({
-          title: "Success",
-          description: "Location deleted successfully.",
-        })
+        setIsDeleteModalOpen(false);
+        setDeleteId(null);
+        toast.success("Location deleted successfully.");
       } else {
         const error = await response.json()
-        toast({
-          title: "Error",
-          description: error.error || 'Failed to delete location',
-          variant: "destructive",
-        })
+        toast.error(error.error || 'Failed to delete location');
       }
     } catch (error) {
       console.error('Failed to delete location:', error)
-      toast({
-        title: "Error",
-        description: 'Failed to delete location',
-        variant: "destructive",
-      })
+      toast.error('Failed to delete location');
+    } finally {
+      setIsDeleting(false);
     }
   }
 
@@ -166,21 +175,21 @@ export default function LocationsPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-foreground">Locations</h1>
-        <Button
-          onClick={() => setShowForm(!showForm)}
-          className="px-6 py-3 rounded-full"
-        >
-          {showForm ? 'Cancel' : 'Add Location'}
+        <Button onClick={openModal} className="px-6 py-3 rounded-full">
+          Add Location
         </Button>
       </div>
 
-      {showForm && (
-        <Card className="p-6 rounded-xl border border-border">
-          <h2 className="text-lg font-semibold mb-4">
-            {editingLocation ? 'Edit Location' : 'Add New Location'}
-          </h2>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>{editingLocation ? 'Edit Location' : 'Add New Location'}</DialogTitle>
+            <DialogDescription>
+              {editingLocation ? 'Make changes to the location details here.' : 'Add a new location to the system.'}
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4 py-4">
+            <div className="grid gap-4">
               <div className="space-y-2">
                 <Label htmlFor="cityName">City Name</Label>
                 <div className="space-y-2">
@@ -189,8 +198,8 @@ export default function LocationsPage() {
                       id="customCity"
                       checked={formData.customCity}
                       onCheckedChange={(checked) => {
-                        setFormData({ 
-                          ...formData, 
+                        setFormData({
+                          ...formData,
                           customCity: checked as boolean,
                           cityName: checked ? formData.cityName : ''
                         })
@@ -198,7 +207,7 @@ export default function LocationsPage() {
                     />
                     <Label htmlFor="customCity" className="text-sm">Enter custom city name</Label>
                   </div>
-                  
+
                   {formData.customCity ? (
                     <Input
                       id="cityName"
@@ -245,38 +254,27 @@ export default function LocationsPage() {
                   </SelectContent>
                 </Select>
               </div>
+
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="isAirport"
+                  checked={formData.isAirport}
+                  onCheckedChange={(checked) => setFormData({ ...formData, isAirport: checked as boolean })}
+                />
+                <Label htmlFor="isAirport">This is an airport location</Label>
+              </div>
             </div>
 
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="isAirport"
-                checked={formData.isAirport}
-                onCheckedChange={(checked) => setFormData({ ...formData, isAirport: checked as boolean })}
-              />
-              <Label htmlFor="isAirport">This is an airport location</Label>
-            </div>
-
-            <div className="flex space-x-2">
-              <Button type="submit" className="flex-1" disabled={submitting}>
-                {submitting ? 'Saving...' : (editingLocation ? 'Update Location' : 'Add Location')}
+            <DialogFooter>
+              <Button type="submit" disabled={submitting}>
+                {submitting ? 'Saving...' : (editingLocation ? 'Update Location' : 'Save Location')}
               </Button>
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => {
-                  setShowForm(false)
-                  setEditingLocation(null)
-                  setFormData({ cityName: '', state: '', isAirport: false, customCity: false })
-                }}
-              >
-                Cancel
-              </Button>
-            </div>
+            </DialogFooter>
           </form>
-        </Card>
-      )}
+        </DialogContent>
+      </Dialog>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
         {locations.map((location) => (
           <Card key={location.id} className="p-6 rounded-xl border border-border hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
             <div className="space-y-3">
@@ -355,6 +353,16 @@ export default function LocationsPage() {
           </div>
         </Card>
       )}
+
+
+      <DeleteConfirmation
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={confirmDelete}
+        title="Delete Location"
+        description="Are you sure you want to delete this location? This action cannot be undone."
+        loading={isDeleting}
+      />
     </div>
   )
 }

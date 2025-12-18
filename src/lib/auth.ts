@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken'
 import { cookies } from 'next/headers'
+import bcrypt from 'bcryptjs'
 
 export async function verifyAdmin() {
   try {
@@ -18,6 +19,5 @@ export async function verifyAdmin() {
 }
 
 export function createAdminHash(password: string) {
-  const bcrypt = require('bcryptjs')
   return bcrypt.hashSync(password, 10)
 }

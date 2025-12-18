@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, MapPin, Car, Clock, Route } from 'lucide-react';
+import { Plus, Edit, Trash2, MapPin, Car, Clock, Route, X } from 'lucide-react';
 import { DeleteConfirmation } from '@/components/ui/delete-confirmation';
+import { toast } from "sonner";
 
 interface Location {
   id: string;
@@ -61,6 +62,7 @@ export default function OneWayPackagesPage() {
     destinationId: '',
     cabId: '',
     price: 0,
+    distanceKm: 0,
     estimatedHours: 0,
     estimatedMinutes: 0
   });
@@ -173,15 +175,18 @@ export default function OneWayPackagesPage() {
         await fetchData();
         setIsDeleteModalOpen(false);
         setDeleteId(null);
-        alert('Package deleted successfully!');
+        setDeleteId(null);
+        toast.success('Package deleted successfully!');
       } else {
         const errorData = await response.json();
         console.error('Delete error response:', errorData);
-        alert(errorData.error || 'Failed to delete package');
+        console.error('Delete error response:', errorData);
+        toast.error(errorData.error || 'Failed to delete package');
       }
     } catch (error) {
       console.error('Error deleting package:', error);
-      alert('Error deleting package. Please try again.');
+      console.error('Error deleting package:', error);
+      toast.error('Error deleting package. Please try again.');
     } finally {
       setIsDeleting(false);
     }
@@ -195,6 +200,7 @@ export default function OneWayPackagesPage() {
         destinationId: pkg.destinationId.toString(),
         cabId: pkg.cabId ? pkg.cabId.toString() : '',
         price: pkg.priceFixed || 0,
+        distanceKm: pkg.distanceKm || 0,
         estimatedHours: pkg.estimatedHours || 0,
         estimatedMinutes: pkg.estimatedMinutes || 0
       });
@@ -205,6 +211,7 @@ export default function OneWayPackagesPage() {
         destinationId: '',
         cabId: '',
         price: 0,
+        distanceKm: 0,
         estimatedHours: 0,
         estimatedMinutes: 0
       });
@@ -307,7 +314,7 @@ export default function OneWayPackagesPage() {
                 From {sourceName}
               </h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-start">
                 {sourcePackages.map((pkg) => (
                   <div
                     key={pkg.id}
@@ -483,12 +490,26 @@ export default function OneWayPackagesPage() {
       {/* Modal */}
       {
         isModalOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-card rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto border border-border shadow-lg">
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm"
+            onClick={closeModal}
+          >
+            <div
+              className="bg-card rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto border border-border shadow-lg relative"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="p-6">
-                <h2 className="text-xl font-semibold mb-4 text-card-foreground">
-                  {editingPackage ? 'Edit Package' : 'Add New Package'}
-                </h2>
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-xl font-semibold text-card-foreground">
+                    {editingPackage ? 'Edit Package' : 'Add New Package'}
+                  </h2>
+                  <button
+                    onClick={closeModal}
+                    className="p-2 hover:bg-muted rounded-full transition-colors text-muted-foreground hover:text-foreground"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
@@ -552,6 +573,25 @@ export default function OneWayPackagesPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-1">
+                      Distance (Km)
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.distanceKm}
+                      onChange={(e) => {
+                        const value = parseFloat(e.target.value);
+                        setFormData({ ...formData, distanceKm: isNaN(value) ? 0 : value } as any);
+                      }}
+                      className="w-full px-4 py-3 border border-input rounded-full focus:ring-2 focus:ring-ring focus:border-transparent bg-background text-foreground transition-all duration-200"
+                      min="0"
+                      step="0.1"
+                      placeholder="e.g. 250"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-1">
                       Price (₹)
                     </label>
                     <input
@@ -604,9 +644,6 @@ export default function OneWayPackagesPage() {
                         </select>
                       </div>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Distance will be calculated automatically. You can adjust the estimated time if needed.
-                    </p>
                   </div>
 
                   <div className="bg-muted rounded-lg p-4 border border-border">

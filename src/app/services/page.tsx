@@ -84,23 +84,7 @@ export default function Services() {
               ))}
             </div>
 
-            <div className="mt-16 text-center">
-              <Card className="p-8 rounded-3xl shadow-2xl backdrop-blur-xl bg-white/10 border border-white/20 relative overflow-hidden">
-                {/* Liquid glass effect overlay */}
-                <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-white/5 pointer-events-none" />
 
-                <div className="relative z-10">
-                  <h2 className="text-3xl font-bold text-white mb-4 drop-shadow-lg">Need a Custom Package?</h2>
-                  <p className="text-white/90 mb-8 text-lg drop-shadow max-w-2xl mx-auto">
-                    We offer customized travel solutions for corporate events, weddings, and special occasions.
-                    Contact us to discuss your specific requirements.
-                  </p>
-                  <Button size="lg" className="bg-yellow-400 hover:bg-yellow-300 text-black font-bold px-8 py-6 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300">
-                    Request Custom Quote
-                  </Button>
-                </div>
-              </Card>
-            </div>
           </div>
         </div>
 

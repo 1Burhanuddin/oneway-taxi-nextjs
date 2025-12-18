@@ -349,3 +349,137 @@ export async function sendAdminNotification(booking: BookingData): Promise<void>
     throw error;
   }
 }
+
+/**
+ * Send callback notification to admin
+ */
+export async function sendCallbackNotification(mobile: string): Promise<void> {
+  const adminEmail = process.env.SMTP_FROM_EMAIL || 'reservations@onewaytaxicabs.com';
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>Call Back Request</title>
+    </head>
+    <body style="margin: 0; padding: 20px; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+      <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        
+        <div style="background-color: #fbbf24; padding: 20px; color: #1f2937;">
+          <h2 style="margin: 0; font-size: 24px;">New Call Back Request</h2>
+        </div>
+
+        <div style="padding: 30px;">
+          <p style="font-size: 16px; margin-bottom: 20px;">A user has requested a call back.</p>
+          
+          <table width="100%" cellpadding="5" cellspacing="0" style="background-color: #f9fafb; padding: 15px; border-radius: 8px;">
+            <tr>
+              <td style="color: #6b7280; font-size: 14px; width: 30%;">Mobile Number:</td>
+              <td style="color: #1f2937; font-size: 18px; font-weight: bold;">
+                <a href="tel:${mobile}" style="color: #1f2937; text-decoration: none;">${mobile}</a>
+              </td>
+            </tr>
+            <tr>
+              <td style="color: #6b7280; font-size: 14px;">Time:</td>
+              <td style="color: #1f2937; font-size: 14px;">${new Date().toLocaleString('en-IN')}</td>
+            </tr>
+          </table>
+        </div>
+
+        <div style="padding: 20px; background-color: #f9fafb; text-align: center; color: #6b7280; font-size: 12px;">
+          <p style="margin: 0;">Automated notification from Oneway Taxi Surat.</p>
+        </div>
+
+      </div>
+    </body>
+    </html>
+  `;
+
+  const mailOptions = {
+    from: `${process.env.SMTP_FROM_NAME || 'Oneway Taxi Surat'} <${process.env.SMTP_FROM_EMAIL || 'reservations@onewaytaxicabs.com'}>`,
+    to: adminEmail,
+    cc: 'rajlaxmidhar175@gmail.com',
+    subject: `Call Back Request - ${mobile}`,
+    html: html,
+  };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Callback notification email sent:', info.messageId);
+  } catch (error) {
+    console.error('Error sending callback email:', error);
+    throw error;
+  }
+}
+
+/**
+ * Send booking inquiry to admin
+ */
+export async function sendBookingInquiry(data: { mobile: string; city: string; cabName: string }): Promise<void> {
+  const adminEmail = process.env.SMTP_FROM_EMAIL || 'reservations@onewaytaxicabs.com';
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <title>New Booking Inquiry</title>
+    </head>
+    <body style="margin: 0; padding: 20px; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+      <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        
+        <div style="background-color: #fbbf24; padding: 20px; color: #1f2937;">
+          <h2 style="margin: 0; font-size: 24px;">New Booking Inquiry</h2>
+        </div>
+
+        <div style="padding: 30px;">
+          <p style="font-size: 16px; margin-bottom: 20px;">A user has inquired about a vehicle.</p>
+          
+          <table width="100%" cellpadding="5" cellspacing="0" style="background-color: #f9fafb; padding: 15px; border-radius: 8px;">
+            <tr>
+              <td style="color: #6b7280; font-size: 14px; width: 30%;">Vehicle:</td>
+              <td style="color: #1f2937; font-size: 16px; font-weight: bold;">${data.cabName}</td>
+            </tr>
+            <tr>
+              <td style="color: #6b7280; font-size: 14px;">City/Route:</td>
+              <td style="color: #1f2937; font-size: 16px; font-weight: bold;">${data.city}</td>
+            </tr>
+            <tr>
+              <td style="color: #6b7280; font-size: 14px;">Mobile:</td>
+              <td style="color: #1f2937; font-size: 18px; font-weight: bold;">
+                <a href="tel:${data.mobile}" style="color: #1f2937; text-decoration: none;">${data.mobile}</a>
+              </td>
+            </tr>
+            <tr>
+              <td style="color: #6b7280; font-size: 14px;">Time:</td>
+              <td style="color: #1f2937; font-size: 14px;">${new Date().toLocaleString('en-IN')}</td>
+            </tr>
+          </table>
+        </div>
+
+        <div style="padding: 20px; background-color: #f9fafb; text-align: center; color: #6b7280; font-size: 12px;">
+          <p style="margin: 0;">Automated notification from Oneway Taxi Surat.</p>
+        </div>
+
+      </div>
+    </body>
+    </html>
+  `;
+
+  const mailOptions = {
+    from: `${process.env.SMTP_FROM_NAME || 'Oneway Taxi Surat'} <${process.env.SMTP_FROM_EMAIL || 'reservations@onewaytaxicabs.com'}>`,
+    to: adminEmail,
+    cc: 'rajlaxmidhar175@gmail.com',
+    subject: `Booking Inquiry - ${data.cabName}`,
+    html: html,
+  };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Booking inquiry email sent:', info.messageId);
+  } catch (error) {
+    console.error('Error sending booking inquiry email:', error);
+    throw error;
+  }
+}

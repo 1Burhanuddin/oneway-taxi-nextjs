@@ -224,9 +224,9 @@ const CarList = ({ tripData, tripType, onSelectCar, onBack }: CarListProps) => {
           </Button>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8 items-start">
           {/* Sidebar */}
-          <Card className="lg:col-span-1 p-6 rounded-3xl h-fit sticky top-24 shadow-2xl backdrop-blur-xl bg-white/10 border border-white/20 relative overflow-hidden">
+          <Card className="md:col-span-1 p-6 rounded-3xl h-fit md:sticky md:top-24 shadow-2xl backdrop-blur-xl bg-white/10 border border-white/20 relative overflow-hidden">
             {/* Liquid glass effect overlay */}
             <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-white/5 to-transparent rounded-3xl" />
             <div className="absolute inset-0 bg-gradient-to-tl from-primary/10 via-transparent to-accent/10 rounded-3xl" />
@@ -234,40 +234,40 @@ const CarList = ({ tripData, tripType, onSelectCar, onBack }: CarListProps) => {
             <div className="relative z-10">
               <h3 className="text-xl font-bold mb-4 text-white drop-shadow-lg">Trip Details</h3>
               <div className="space-y-3 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-white/70">Trip Type:</span>
-                  <span className="font-semibold text-white capitalize">{tripType}</span>
+                <div className="flex justify-between items-start gap-4">
+                  <span className="text-white/70 shrink-0">Trip Type:</span>
+                  <span className="font-semibold text-white capitalize text-right">{tripType}</span>
                 </div>
                 {tripData.pickupCity && (
-                  <div className="flex justify-between">
-                    <span className="text-white/70">From:</span>
-                    <span className="font-semibold text-white">{tripData.pickupCity}</span>
+                  <div className="flex justify-between items-start gap-4">
+                    <span className="text-white/70 shrink-0">From:</span>
+                    <span className="font-semibold text-white text-right break-words">{tripData.pickupCity}</span>
                   </div>
                 )}
                 {tripData.dropCity && (
-                  <div className="flex justify-between">
-                    <span className="text-white/70">To:</span>
-                    <span className="font-semibold text-white">{tripData.dropCity}</span>
+                  <div className="flex justify-between items-start gap-4">
+                    <span className="text-white/70 shrink-0">To:</span>
+                    <span className="font-semibold text-white text-right break-words">{tripData.dropCity}</span>
                   </div>
                 )}
                 {tripData.pickupCity && tripData.dropCity && tripType !== 'local' && (
-                  <div className="flex justify-between">
-                    <span className="text-white/70">Distance:</span>
-                    <span className="font-semibold text-white">{calculatePrice(cars[0] || { pricePerKm: 10 } as Car).distance} km</span>
+                  <div className="flex justify-between items-start gap-4">
+                    <span className="text-white/70 shrink-0">Distance:</span>
+                    <span className="font-semibold text-white text-right">{calculatePrice(cars[0] || { pricePerKm: 10 } as Car).distance} km</span>
                   </div>
                 )}
-                <div className="flex justify-between">
-                  <span className="text-white/70">Date:</span>
-                  <span className="font-semibold text-white">{new Date().toLocaleDateString()}</span>
+                <div className="flex justify-between items-start gap-4">
+                  <span className="text-white/70 shrink-0">Date:</span>
+                  <span className="font-semibold text-white text-right">{new Date().toLocaleDateString()}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-white/70">Time:</span>
-                  <span className="font-semibold text-white">{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                <div className="flex justify-between items-start gap-4">
+                  <span className="text-white/70 shrink-0">Time:</span>
+                  <span className="font-semibold text-white text-right">{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                 </div>
                 {tripData.mobile && (
-                  <div className="flex justify-between">
-                    <span className="text-white/70">Mobile:</span>
-                    <span className="font-semibold text-white">{tripData.mobile}</span>
+                  <div className="flex justify-between items-start gap-4">
+                    <span className="text-white/70 shrink-0">Mobile:</span>
+                    <span className="font-semibold text-white text-right">{tripData.mobile}</span>
                   </div>
                 )}
               </div>
@@ -275,7 +275,7 @@ const CarList = ({ tripData, tripType, onSelectCar, onBack }: CarListProps) => {
           </Card>
 
           {/* Car List */}
-          <div className="lg:col-span-3 space-y-6">
+          <div className="md:col-span-2 lg:col-span-3 space-y-6">
             {cars.map((car) => {
               const priceCalculation = calculatePrice(car);
               const features = parseFeatures(car.features);
@@ -287,7 +287,7 @@ const CarList = ({ tripData, tripType, onSelectCar, onBack }: CarListProps) => {
                   <div className="absolute inset-0 bg-gradient-to-tl from-primary/10 via-transparent to-accent/10 rounded-3xl" />
 
                   <div className="relative z-10">
-                    <div className="flex flex-col md:flex-row gap-6">
+                    <div className="flex flex-col md:flex-row gap-6 items-start">
                       <div className="md:w-1/3">
                         <img
                           src={car.image || "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400&h=300&fit=crop"}

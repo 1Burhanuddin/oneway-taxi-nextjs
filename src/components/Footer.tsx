@@ -127,10 +127,11 @@ const Footer = () => {
                     </a>
                   </div>
                   <div className="space-y-2 text-white/60 text-sm">
-                    <p>© 2024 Oneway Taxi Surat. All rights reserved.</p>
+                    <p>© 2025 Oneway Taxi Surat. All rights reserved.</p>
                     <div className="flex gap-4">
-                      <a href="#" className="hover:text-yellow-400 transition-colors">Privacy Policy</a>
-                      <a href="#" className="hover:text-yellow-400 transition-colors">Terms of Service</a>
+                      <a href="/privacy-policy" className="hover:text-yellow-400 transition-colors">Privacy Policy</a>
+                      <a href="/terms" className="hover:text-yellow-400 transition-colors">Terms of Service</a>
+                      <a href="/refund-policy" className="hover:text-yellow-400 transition-colors">Refund Policy</a>
                     </div>
                   </div>
                 </div>

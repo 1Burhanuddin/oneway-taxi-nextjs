@@ -17,16 +17,30 @@ const RequestCallBackDialog = ({ isOpen, onClose }: RequestCallBackDialogProps) 
 
     if (!isOpen) return null;
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Simulate API call
-        console.log("Requesting call back for:", mobile);
-        setSubmitted(true);
-        setTimeout(() => {
-            setSubmitted(false);
-            setMobile("");
-            onClose();
-        }, 2000);
+
+        try {
+            const response = await fetch('/api/request-callback', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mobile })
+            });
+
+            if (response.ok) {
+                setSubmitted(true);
+                setTimeout(() => {
+                    setSubmitted(false);
+                    setMobile("");
+                    onClose();
+                }, 2000);
+            } else {
+                console.error('Failed to submit request');
+                // Optional: Show error state
+            }
+        } catch (error) {
+            console.error('Error submitting request:', error);
+        }
     };
 
     return (

@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useMemo } from "react";
 
 interface ConfirmationProps {
   bookingData: any;
@@ -7,7 +8,7 @@ interface ConfirmationProps {
 }
 
 const Confirmation = ({ bookingData, onBack }: ConfirmationProps) => {
-  const bookingNumber = `BK${Date.now().toString().slice(-8)}`;
+  const bookingNumber = useMemo(() => `BK${Date.now().toString().slice(-8)}`, []);
 
   return (
     <div className="max-w-4xl mx-auto pt-20 pb-12 px-4">

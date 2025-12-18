@@ -199,6 +199,20 @@ const Contact = () => {
                             </form>
                         </Card>
                     </div>
+
+                    {/* Google Map */}
+                    <Card className="mt-12 p-2 rounded-3xl border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl overflow-hidden">
+                        <iframe
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3719.408279119373!2d72.7920542!3d21.2156527!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be04df3054bf151%3A0xb5835779a009598a!2sChoice%20Taxi%20surat!5e0!3m2!1sen!2sin!4v1765879913059!5m2!1sen!2sin"
+                            width="100%"
+                            height="450"
+                            style={{ border: 0 }}
+                            allowFullScreen
+                            loading="lazy"
+                            referrerPolicy="no-referrer-when-downgrade"
+                            className="rounded-2xl"
+                        />
+                    </Card>
                 </div>
             </div>
 
