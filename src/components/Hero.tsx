@@ -14,7 +14,7 @@ const Hero = ({ onSelectTripType, children, activeTripType = 'oneway' }: HeroPro
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat bg-fixed"
         style={{
-          backgroundImage: `url('https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80')`
+          backgroundImage: `url('https://images.unsplash.com/photo-1573004814905-55057414ebe2?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')`
         }}
       />
 
@@ -31,19 +31,19 @@ const Hero = ({ onSelectTripType, children, activeTripType = 'oneway' }: HeroPro
 
         {/* Trip Type Selection */}
         <div className="max-w-5xl mx-auto w-full mb-8">
-          <Card className="p-6 rounded-3xl shadow-2xl backdrop-blur-xl bg-white/10 border border-white/20 relative overflow-hidden">
+          <Card className="p-6 md:p-10 rounded-3xl shadow-2xl backdrop-blur-xl bg-white/10 border border-white/20 relative overflow-hidden">
             {/* Liquid glass effect overlay */}
-            <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-white/5 to-transparent rounded-3xl" />
-            <div className="absolute inset-0 bg-gradient-to-tl from-primary/10 via-transparent to-accent/10 rounded-3xl" />
+            <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-white/5 to-transparent rounded-3xl pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-tl from-primary/10 via-transparent to-accent/10 rounded-3xl pointer-events-none" />
 
             <div className="relative z-10">
-              <h2 className="text-lg font-semibold mb-6 text-white text-center drop-shadow-lg">Select Your Trip Type</h2>
-              <div className="flex justify-between items-center max-w-2xl mx-auto gap-4">
+              {/* <h2 className="text-xl font-semibold mb-6 text-primary font-bold text-center drop-shadow-lg">Select Your Trip Type</h2> */}
+              <div className="flex justify-between items-center w-full mx-auto gap-4">
                 <Button
                   onClick={() => onSelectTripType('oneway')}
-                  className={`flex-1 md:flex-none md:w-48 justify-center px-2 md:px-6 py-2 rounded-full text-sm font-medium backdrop-blur-md border transition-all duration-300 hover:scale-105 hover:shadow-xl flex items-center gap-2 relative overflow-hidden group ${activeTripType === 'oneway'
-                    ? 'bg-yellow-300/90 border-yellow-200/70 text-black shadow-lg scale-105'
-                    : 'bg-yellow-400/80 hover:bg-yellow-300/90 text-black border-yellow-300/50 hover:border-yellow-200/70'
+                  className={`flex-1 md:flex-none justify-center px-2 md:px-6 py-4 rounded-full text-base font-semibold backdrop-blur-xl border transition-all duration-500 ease-in-out hover:scale-105 hover:shadow-xl flex items-center gap-3 relative overflow-hidden group ${activeTripType === 'oneway'
+                    ? 'md:w-80 bg-yellow-400 border-yellow-400 text-black shadow-[0_0_20px_rgba(250,204,21,0.5)] scale-105 font-bold z-10'
+                    : 'md:w-60 bg-white/20 hover:bg-white/30 text-white border-yellow-400 hover:border-yellow-300'
                     }`}
                 >
                   {/* Liquid glass button overlay */}
@@ -58,9 +58,9 @@ const Hero = ({ onSelectTripType, children, activeTripType = 'oneway' }: HeroPro
 
                 <Button
                   onClick={() => onSelectTripType('roundtrip')}
-                  className={`flex-1 md:flex-none md:w-48 justify-center px-2 md:px-6 py-2 rounded-full text-sm font-medium backdrop-blur-md border transition-all duration-300 hover:scale-105 hover:shadow-xl flex items-center gap-2 relative overflow-hidden group ${activeTripType === 'roundtrip'
-                    ? 'bg-yellow-300/90 border-yellow-200/70 text-black shadow-lg scale-105'
-                    : 'bg-yellow-400/80 hover:bg-yellow-300/90 text-black border-yellow-300/50 hover:border-yellow-200/70'
+                  className={`flex-1 md:flex-none justify-center px-2 md:px-6 py-4 rounded-full text-base font-semibold backdrop-blur-xl border transition-all duration-500 ease-in-out hover:scale-105 hover:shadow-xl flex items-center gap-3 relative overflow-hidden group ${activeTripType === 'roundtrip'
+                    ? 'md:w-80 bg-yellow-400 border-yellow-400 text-black shadow-[0_0_20px_rgba(250,204,21,0.5)] scale-105 font-bold z-10'
+                    : 'md:w-60 bg-white/20 hover:bg-white/30 text-white border-yellow-400 hover:border-yellow-300'
                     }`}
                 >
                   {/* Liquid glass button overlay */}
@@ -75,9 +75,9 @@ const Hero = ({ onSelectTripType, children, activeTripType = 'oneway' }: HeroPro
 
                 <Button
                   onClick={() => onSelectTripType('local')}
-                  className={`flex-1 md:flex-none md:w-48 justify-center px-2 md:px-6 py-2 rounded-full text-sm font-medium backdrop-blur-md border transition-all duration-300 hover:scale-105 hover:shadow-xl flex items-center gap-2 relative overflow-hidden group ${activeTripType === 'local'
-                    ? 'bg-yellow-300/90 border-yellow-200/70 text-black shadow-lg scale-105'
-                    : 'bg-yellow-400/80 hover:bg-yellow-300/90 text-black border-yellow-300/50 hover:border-yellow-200/70'
+                  className={`flex-1 md:flex-none justify-center px-2 md:px-6 py-4 rounded-full text-base font-semibold backdrop-blur-xl border transition-all duration-500 ease-in-out hover:scale-105 hover:shadow-xl flex items-center gap-3 relative overflow-hidden group ${activeTripType === 'local'
+                    ? 'md:w-80 bg-yellow-400 border-yellow-400 text-black shadow-[0_0_20px_rgba(250,204,21,0.5)] scale-105 font-bold z-10'
+                    : 'md:w-60 bg-white/20 hover:bg-white/30 text-white border-yellow-400 hover:border-yellow-300'
                     }`}
                 >
                   {/* Liquid glass button overlay */}

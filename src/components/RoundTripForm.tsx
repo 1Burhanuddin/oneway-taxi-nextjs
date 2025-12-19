@@ -71,10 +71,10 @@ const RoundTripForm = ({ onSubmit }: RoundTripFormProps) => {
   };
 
   return (
-    <Card className="p-6 rounded-3xl shadow-2xl backdrop-blur-xl bg-white/10 border border-white/20 relative overflow-hidden">
+    <Card className="p-6 md:p-10 rounded-3xl shadow-2xl backdrop-blur-xl bg-white/10 border border-white/20 relative overflow-hidden">
       {/* Liquid glass effect overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-white/5 to-transparent rounded-3xl" />
-      <div className="absolute inset-0 bg-gradient-to-tl from-primary/10 via-transparent to-accent/10 rounded-3xl" />
+      <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-white/5 to-transparent rounded-3xl pointer-events-none" />
+      <div className="absolute inset-0 bg-gradient-to-tl from-primary/10 via-transparent to-accent/10 rounded-3xl pointer-events-none" />
 
       <div className="relative z-10">
         <h2 className="text-2xl font-bold mb-6 text-white text-center drop-shadow-lg">Round Trip</h2>

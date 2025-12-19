@@ -281,60 +281,61 @@ const CarList = ({ tripData, tripType, onSelectCar, onBack }: CarListProps) => {
               const features = parseFeatures(car.features);
 
               return (
-                <Card key={car.id} className="p-6 rounded-3xl shadow-2xl backdrop-blur-xl bg-white/10 border border-white/20 relative overflow-hidden hover:bg-white/15 transition-all duration-300">
+                <Card key={car.id} className="p-4 rounded-3xl shadow-2xl backdrop-blur-xl bg-white/10 border border-white/20 relative overflow-hidden hover:bg-white/15 transition-all duration-300">
                   {/* Liquid glass effect overlay */}
                   <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-white/5 to-transparent rounded-3xl" />
                   <div className="absolute inset-0 bg-gradient-to-tl from-primary/10 via-transparent to-accent/10 rounded-3xl" />
 
                   <div className="relative z-10">
-                    <div className="flex flex-col md:flex-row gap-6 items-start">
-                      <div className="md:w-1/3">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="md:col-span-1 h-full rounded-2xl overflow-hidden">
                         <img
                           src={car.image || "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=400&h=300&fit=crop"}
                           alt={car.name}
-                          className="w-full h-48 object-cover rounded-2xl"
+                          className="w-full h-full object-contain rounded-2xl min-h-[10rem]"
                         />
                       </div>
 
-                      <div className="md:w-2/3 flex flex-col justify-between">
+                      <div className="md:col-span-2 flex flex-col justify-between h-full">
                         <div>
-                          <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-start justify-between mb-2">
                             <div>
-                              <h3 className="text-2xl font-bold text-white drop-shadow">{car.name}</h3>
-                              <p className="text-white/70 capitalize">{car.type}</p>
+                              <h3 className="text-xl font-bold text-white drop-shadow">{car.name}</h3>
+                              <p className="text-white/70 capitalize text-sm">{car.type}</p>
                               {tripType === 'oneway' && (
-                                <p className="text-white/60 text-sm">Fixed Price Package</p>
+                                <p className="text-white/60 text-xs">Fixed Price Package</p>
                               )}
                               {tripType === 'local' && (
-                                <p className="text-white/60 text-sm">{car.hoursIncluded} Hr / {car.kmIncluded} Km Package</p>
+                                <p className="text-white/60 text-xs">{car.hoursIncluded} Hr / {car.kmIncluded} Km Package</p>
                               )}
                               {tripType === 'roundtrip' && (
-                                <p className="text-white/60 text-sm">₹{car.pricePerKm}/km • {car.minKm}km/day limit</p>
+                                <p className="text-white/60 text-xs">₹{car.pricePerKm}/km • {car.minKm}km/day limit</p>
                               )}
                             </div>
                             <div className="text-right">
-                              <p className="text-3xl font-bold text-yellow-400 drop-shadow">₹{priceCalculation.totalPrice}</p>
+                              <p className="text-2xl font-bold text-yellow-400 drop-shadow">₹{priceCalculation.totalPrice}</p>
                             </div>
                           </div>
 
 
 
-                          <div className="flex flex-wrap gap-2 mb-4">
-                            <Badge className="rounded-full px-3 py-1 bg-white/20 text-white border border-white/30">
+                          <div className="flex flex-wrap gap-2 mb-3">
+                            <Badge className="rounded-full px-2 py-0.5 text-xs bg-white/20 text-white border border-white/30">
                               {car.capacity} Seats
                             </Badge>
                             {features.map((feature: string) => (
-                              <Badge key={feature} className="rounded-full px-3 py-1 bg-white/20 text-white border border-white/30">
+                              <Badge key={feature} className="rounded-full px-2 py-0.5 text-xs bg-white/20 text-white border border-white/30">
                                 {feature}
                               </Badge>
                             ))}
                           </div>
                         </div>
 
-                        <div className="flex flex-col sm:flex-row gap-3">
+                        <div className="flex flex-col sm:flex-row gap-2">
                           <Button
                             onClick={() => onSelectCar({ ...car, totalPrice: priceCalculation.totalPrice })}
                             disabled={false}
+                            size="sm"
                             className="flex-1 !rounded-full font-semibold backdrop-blur-md bg-yellow-400/80 hover:bg-yellow-300/90 text-black border border-yellow-300/50 hover:border-yellow-200/70 transition-all duration-300 hover:scale-105 hover:shadow-xl relative overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                           >
                             <div className="absolute inset-0 bg-gradient-to-r from-yellow-200/20 via-yellow-100/30 to-yellow-200/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -343,6 +344,7 @@ const CarList = ({ tripData, tripType, onSelectCar, onBack }: CarListProps) => {
 
                           <Button
                             onClick={() => setExpandedCar(expandedCar === car.id ? null : car.id)}
+                            size="sm"
                             className="!rounded-full backdrop-blur-md bg-white/20 hover:bg-white/30 text-white border border-white/30 hover:border-white/50 transition-all duration-300"
                           >
                             {expandedCar === car.id ? "Hide" : "View"} Fare Details
@@ -352,6 +354,32 @@ const CarList = ({ tripData, tripType, onSelectCar, onBack }: CarListProps) => {
                         {expandedCar === car.id && (
                           <div className="mt-4 p-4 rounded-2xl backdrop-blur-md bg-white/10 border border-white/20 animate-in slide-in-from-top-4 fade-in duration-300">
                             <div className="space-y-2 text-sm text-white">
+                              <div className="border-b border-white/10 pb-2 mb-2 space-y-2">
+                                <div className="flex justify-between">
+                                  <span className="text-white/70">Trip Type:</span>
+                                  <span className="font-semibold capitalize">{tripType}</span>
+                                </div>
+                                {tripData.pickupCity && (
+                                  <div className="flex justify-between">
+                                    <span className="text-white/70">From:</span>
+                                    <span className="font-semibold text-right">{tripData.pickupCity}</span>
+                                  </div>
+                                )}
+                                {tripData.dropCity && (
+                                  <div className="flex justify-between">
+                                    <span className="text-white/70">To:</span>
+                                    <span className="font-semibold text-right">{tripData.dropCity}</span>
+                                  </div>
+                                )}
+                                <div className="flex justify-between">
+                                  <span className="text-white/70">Date:</span>
+                                  <span className="font-semibold">{new Date().toLocaleDateString()}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="text-white/70">Time:</span>
+                                  <span className="font-semibold">{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                </div>
+                              </div>
                               <div className="flex justify-between">
                                 <span className="text-white/70">Distance:</span>
                                 <span className="font-semibold">{priceCalculation.distance} km</span>
