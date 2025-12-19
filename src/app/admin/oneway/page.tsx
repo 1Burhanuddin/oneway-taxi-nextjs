@@ -304,7 +304,7 @@ export default function OneWayPackagesPage() {
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Source City</label>
                   <Combobox
-                    options={locations.map(loc => ({ label: loc.name || loc.cityName || '', value: loc.id }))}
+                    options={locations.map(loc => ({ label: loc.name || loc.cityName || '', value: loc.id.toString() }))}
                     value={filterSource}
                     onChange={setFilterSource}
                     placeholder="Select Source..."
@@ -313,7 +313,7 @@ export default function OneWayPackagesPage() {
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Destination City</label>
                   <Combobox
-                    options={locations.map(loc => ({ label: loc.name || loc.cityName || '', value: loc.id }))}
+                    options={locations.map(loc => ({ label: loc.name || loc.cityName || '', value: loc.id.toString() }))}
                     value={filterDestination}
                     onChange={setFilterDestination}
                     placeholder="Select Destination..."
@@ -322,7 +322,7 @@ export default function OneWayPackagesPage() {
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Cab Type</label>
                   <Combobox
-                    options={cabs.map(cab => ({ label: `${cab.name} (${cab.type})`, value: cab.id }))}
+                    options={cabs.map(cab => ({ label: `${cab.name} (${cab.type})`, value: cab.id.toString() }))}
                     value={filterCabType}
                     onChange={setFilterCabType}
                     placeholder="Select Cab..."
@@ -574,7 +574,7 @@ export default function OneWayPackagesPage() {
                         Source City
                       </label>
                       <Combobox
-                        options={locations.map(loc => ({ label: loc.name || loc.cityName || '', value: loc.id }))}
+                        options={locations.map(loc => ({ label: loc.name || loc.cityName || '', value: loc.id.toString() }))}
                         value={formData.sourceId}
                         onChange={(value) => setFormData({ ...formData, sourceId: value })}
                         placeholder="Select Source"
@@ -587,8 +587,8 @@ export default function OneWayPackagesPage() {
                       </label>
                       <Combobox
                         options={locations
-                          .filter(loc => loc.id !== formData.sourceId)
-                          .map(loc => ({ label: loc.name || loc.cityName || '', value: loc.id }))}
+                          .filter(loc => loc.id.toString() !== formData.sourceId)
+                          .map(loc => ({ label: loc.name || loc.cityName || '', value: loc.id.toString() }))}
                         value={formData.destinationId}
                         onChange={(value) => setFormData({ ...formData, destinationId: value })}
                         placeholder="Select Destination"
@@ -601,7 +601,7 @@ export default function OneWayPackagesPage() {
                       Cab
                     </label>
                     <Combobox
-                      options={cabs.map(cab => ({ label: `${cab.name} (${cab.type})`, value: cab.id }))}
+                      options={cabs.map(cab => ({ label: `${cab.name} (${cab.type})`, value: cab.id.toString() }))}
                       value={formData.cabId}
                       onChange={(value) => setFormData({ ...formData, cabId: value })}
                       placeholder="Select Cab"

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Car, Clock, MapPin, DollarSign } from 'lucide-react';
+import { Plus, Edit, Trash2, Car, Clock, MapPin, DollarSign, X } from 'lucide-react';
 import { toast } from "sonner";
 import { Combobox } from "@/components/ui/combobox";
 
@@ -134,7 +134,7 @@ export default function LocalPackagesPage() {
     if (pkg) {
       setEditingPackage(pkg);
       setFormData({
-        cabId: pkg.cabId,
+        cabId: pkg.cabId.toString(),
         hoursIncluded: pkg.hoursIncluded,
         kmIncluded: pkg.kmIncluded,
         priceFixed: pkg.priceFixed,
@@ -350,13 +350,27 @@ export default function LocalPackagesPage() {
 
       {/* Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-card rounded-xl border border-border max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm"
+          onClick={closeModal}
+        >
+          <div
+            className="bg-card rounded-xl border border-border max-w-md w-full max-h-[90vh] overflow-y-auto shadow-lg relative"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="p-6">
 
-              <h2 className="text-xl font-semibold mb-4">
-                {editingPackage ? 'Edit Local Package' : 'Add Local Package'}
-              </h2>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold">
+                  {editingPackage ? 'Edit Local Package' : 'Add Local Package'}
+                </h2>
+                <button
+                  onClick={closeModal}
+                  className="p-2 hover:bg-muted rounded-full transition-colors text-muted-foreground hover:text-foreground"
+                >
+                  <X size={20} />
+                </button>
+              </div>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
@@ -364,7 +378,7 @@ export default function LocalPackagesPage() {
                     Cab
                   </label>
                   <Combobox
-                    options={getAvailableCabs().map(cab => ({ label: `${cab.name} (${cab.type})`, value: cab.id }))}
+                    options={getAvailableCabs().map(cab => ({ label: `${cab.name} (${cab.type})`, value: cab.id.toString() }))}
                     value={formData.cabId}
                     onChange={(value) => setFormData({ ...formData, cabId: value })}
                     placeholder="Select Cab"

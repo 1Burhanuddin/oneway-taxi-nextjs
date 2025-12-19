@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Car, MapPin, DollarSign } from 'lucide-react';
+import { Plus, Edit, Trash2, Car, MapPin, DollarSign, X } from 'lucide-react';
 import { toast } from "sonner";
 import { Combobox } from "@/components/ui/combobox";
 
@@ -128,7 +128,7 @@ export default function RoundTripPage() {
     if (rate) {
       setEditingRate(rate);
       setFormData({
-        cabId: rate.cabId,
+        cabId: rate.cabId.toString(),
         ratePerKm: rate.ratePerKm || 0,
         minimumKm: rate.minimumKm || 300,
         driverAllowancePerDay: rate.driverAllowancePerDay || 0
@@ -330,12 +330,26 @@ export default function RoundTripPage() {
 
       {/* Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-card rounded-xl border border-border max-w-md w-full">
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 backdrop-blur-sm"
+          onClick={closeModal}
+        >
+          <div
+            className="bg-card rounded-xl border border-border max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-lg relative"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="p-6">
-              <h2 className="text-xl font-semibold mb-4">
-                {editingRate ? 'Edit Round Trip Rate' : 'Add Round Trip Rate'}
-              </h2>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-semibold">
+                  {editingRate ? 'Edit Round Trip Rate' : 'Add Round Trip Rate'}
+                </h2>
+                <button
+                  onClick={closeModal}
+                  className="p-2 hover:bg-muted rounded-full transition-colors text-muted-foreground hover:text-foreground"
+                >
+                  <X size={20} />
+                </button>
+              </div>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
@@ -348,7 +362,7 @@ export default function RoundTripPage() {
                     </div>
                   ) : (
                     <Combobox
-                      options={getAvailableCabs().map(cab => ({ label: `${cab.name} (${cab.type})`, value: cab.id }))}
+                      options={getAvailableCabs().map(cab => ({ label: `${cab.name} (${cab.type})`, value: cab.id.toString() }))}
                       value={formData.cabId}
                       onChange={(value) => setFormData({ ...formData, cabId: value })}
                       placeholder="Select Cab"
@@ -367,7 +381,7 @@ export default function RoundTripPage() {
                       const value = parseFloat(e.target.value);
                       setFormData({ ...formData, ratePerKm: isNaN(value) ? 0 : value });
                     }}
-                    className="w-full px-3 py-2 border border-input rounded-full focus:ring-2 focus:ring-primary focus:border-transparent"
+                    className="w-full px-4 py-3 border border-input rounded-full focus:ring-2 focus:ring-primary focus:border-transparent bg-background text-foreground transition-all duration-200"
                     min="0"
                     step="0.01"
                     required
@@ -385,7 +399,7 @@ export default function RoundTripPage() {
                       const value = parseInt(e.target.value);
                       setFormData({ ...formData, minimumKm: isNaN(value) ? 300 : value });
                     }}
-                    className="w-full px-3 py-2 border border-input rounded-full focus:ring-2 focus:ring-primary focus:border-transparent"
+                    className="w-full px-4 py-3 border border-input rounded-full focus:ring-2 focus:ring-primary focus:border-transparent bg-background text-foreground transition-all duration-200"
                     min="1"
                     placeholder="300"
                     required
@@ -406,7 +420,7 @@ export default function RoundTripPage() {
                       const value = parseFloat(e.target.value);
                       setFormData({ ...formData, driverAllowancePerDay: isNaN(value) ? 0 : value });
                     }}
-                    className="w-full px-3 py-2 border border-input rounded-full focus:ring-2 focus:ring-primary focus:border-transparent"
+                    className="w-full px-4 py-3 border border-input rounded-full focus:ring-2 focus:ring-primary focus:border-transparent bg-background text-foreground transition-all duration-200"
                     min="0"
                     step="0.01"
                     required
@@ -414,7 +428,7 @@ export default function RoundTripPage() {
                 </div>
 
                 {formData.ratePerKm > 0 && formData.minimumKm > 0 && (
-                  <div className="bg-primary/10 rounded-full p-3">
+                  <div className="bg-primary/10 rounded-lg p-3">
                     <p className="text-sm text-primary font-medium">Daily Cost (Max KMs)</p>
                     <p className="text-lg font-bold text-primary-dark">
                       ₹{((formData.ratePerKm || 0) * (formData.minimumKm || 300) + (formData.driverAllowancePerDay || 0)).toLocaleString()}
