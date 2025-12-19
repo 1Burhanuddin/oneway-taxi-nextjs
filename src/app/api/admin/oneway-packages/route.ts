@@ -44,20 +44,29 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid source or destination' }, { status: 400 })
     }
 
-    // Calculate distance automatically
+    // Calculate distance automatically or use provided
     let calculatedDistance: number | null = null;
     let autoEstimatedTime = { hours: 0, minutes: 0 };
 
-    // Try to get coordinates and calculate distance
-    const sourceCoords = getCityCoordinates(sourceLocation.cityName);
-    const destCoords = getCityCoordinates(destinationLocation.cityName);
+    // Use provided distance if available
+    if (data.distanceKm !== undefined && data.distanceKm !== null && data.distanceKm !== 0) {
+      calculatedDistance = parseFloat(data.distanceKm);
+      // If time is not provided but distance is, we can estimate time
+      if (estimatedHours === undefined && estimatedMinutes === undefined) {
+        autoEstimatedTime = estimateTime(calculatedDistance);
+      }
+    } else {
+      // Try to get coordinates and calculate distance automatically
+      const sourceCoords = getCityCoordinates(sourceLocation.cityName);
+      const destCoords = getCityCoordinates(destinationLocation.cityName);
 
-    if (sourceCoords && destCoords) {
-      calculatedDistance = calculateDistance(
-        sourceCoords.lat, sourceCoords.lng,
-        destCoords.lat, destCoords.lng
-      );
-      autoEstimatedTime = estimateTime(calculatedDistance);
+      if (sourceCoords && destCoords) {
+        calculatedDistance = calculateDistance(
+          sourceCoords.lat, sourceCoords.lng,
+          destCoords.lat, destCoords.lng
+        );
+        autoEstimatedTime = estimateTime(calculatedDistance);
+      }
     }
 
     // Use provided time if available, otherwise use auto-estimated

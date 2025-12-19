@@ -1,9 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, MapPin, Car, Clock, Route, X } from 'lucide-react';
+import { Plus, Edit, Trash2, MapPin, Car, Clock, Route, X, CheckCircle2, Filter } from 'lucide-react';
 import { DeleteConfirmation } from '@/components/ui/delete-confirmation';
 import { toast } from "sonner";
+import { Combobox } from "@/components/ui/combobox";
+import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface Location {
   id: string;
@@ -76,8 +83,15 @@ export default function OneWayPackagesPage() {
     fetchData();
   }, []);
 
-  // 1. Filter packages
+  // 1. Check if filters are active
+  const hasFilters = filterSource !== '' || filterDestination !== '' || filterCabType !== '';
+
+  // 2. Filter packages
   const filteredPackages = packages.filter(pkg => {
+    // If no filters are active, show everything
+    if (!hasFilters) return true;
+
+    // Apply filters matching
     if (filterSource && pkg.sourceId.toString() !== filterSource) return false;
     if (filterDestination && pkg.destinationId.toString() !== filterDestination) return false;
     if (filterCabType && pkg.cabId?.toString() !== filterCabType) return false;
@@ -88,7 +102,7 @@ export default function OneWayPackagesPage() {
     return sourceA.localeCompare(sourceB);
   });
 
-  // 2. Paginate filtered packages
+  // 3. Paginate filtered packages
   const totalItems = filteredPackages.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const paginatedPackages = filteredPackages.slice(
@@ -96,7 +110,7 @@ export default function OneWayPackagesPage() {
     currentPage * itemsPerPage
   );
 
-  // 3. Group paginated packages for display
+  // 4. Group paginated packages for display
   const groupedDisplay = paginatedPackages.reduce((acc, pkg) => {
     const sourceName = pkg.source?.name || pkg.source?.cityName || 'Unknown';
     if (!acc[sourceName]) {
@@ -113,25 +127,45 @@ export default function OneWayPackagesPage() {
 
   const fetchData = async () => {
     try {
-      const [packagesRes, locationsRes, cabsRes] = await Promise.all([
-        fetch('/api/admin/oneway-packages'),
-        fetch('/api/cities'),
-        fetch('/api/cabs')
+      const results = await Promise.allSettled([
+        fetch('/api/admin/oneway-packages', { cache: 'no-store' }),
+        fetch('/api/cities', { cache: 'no-store' }),
+        fetch('/api/cabs', { cache: 'no-store' })
       ]);
 
-      // Check if responses are ok before parsing JSON
-      const packagesData = packagesRes.ok ? await packagesRes.json() : [];
-      const locationsData = locationsRes.ok ? await locationsRes.json() : [];
-      const cabsData = cabsRes.ok ? await cabsRes.json() : [];
+      // Handle Packages
+      if (results[0].status === 'fulfilled' && results[0].value.ok) {
+        const data = await results[0].value.json();
+        setPackages(Array.isArray(data) ? data : []);
+      } else {
+        console.error('Failed to fetch packages', results[0].status === 'rejected' ? results[0].reason : results[0].value.statusText);
+        // Don't clear packages if it was a refresh and we already had data? 
+        // actually, safety first, maybe keep old data or show error? 
+        // For now, let's just log error and maybe show a toast.
+        toast.error('Failed to load packages. Please refresh.');
+      }
 
-      setPackages(Array.isArray(packagesData) ? packagesData : []);
-      setLocations(Array.isArray(locationsData) ? locationsData : []);
-      setCabs(Array.isArray(cabsData) ? cabsData : []);
+      // Handle Locations
+      if (results[1].status === 'fulfilled' && results[1].value.ok) {
+        const data = await results[1].value.json();
+        setLocations(Array.isArray(data) ? data : []);
+      } else {
+        console.error('Failed to fetch locations', results[1].status === 'rejected' ? results[1].reason : results[1].value.statusText);
+        toast.error('Failed to load cities. Dropdowns may be empty.');
+      }
+
+      // Handle Cabs
+      if (results[2].status === 'fulfilled' && results[2].value.ok) {
+        const data = await results[2].value.json();
+        setCabs(Array.isArray(data) ? data : []);
+      } else {
+        console.error('Failed to fetch cabs', results[2].status === 'rejected' ? results[2].reason : results[2].value.statusText);
+        toast.error('Failed to load cabs. Dropdowns may be empty.');
+      }
+
     } catch (error) {
       console.error('Error fetching data:', error);
-      setPackages([]);
-      setLocations([]);
-      setCabs([]);
+      toast.error('Network error. Please check your connection.');
     } finally {
       setLoading(false);
     }
@@ -250,61 +284,83 @@ export default function OneWayPackagesPage() {
 
   return (
     <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
         <h1 className="text-2xl font-bold text-foreground">One-Way Packages</h1>
-        <button
-          onClick={() => openModal()}
-          className="bg-primary hover:bg-primary-dark text-primary-foreground px-6 py-3 rounded-full flex items-center gap-2 transition-all duration-200 hover:shadow-lg"
-        >
-          <Plus size={20} />
-          Add Package
-        </button>
-      </div>
 
+        <div className="flex w-full md:w-auto gap-2">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" className="flex-1 md:flex-none gap-2 rounded-full">
+                <Filter className="h-4 w-4" />
+                Filters
+                {(filterSource || filterDestination || filterCabType) && (
+                  <span className="ml-1 rounded-full bg-primary w-2 h-2" />
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80 p-4" align="end">
+              <div className="space-y-4">
+                <h4 className="font-medium leading-none">Filter Packages</h4>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Source City</label>
+                  <Combobox
+                    options={locations.map(loc => ({ label: loc.name || loc.cityName || '', value: loc.id }))}
+                    value={filterSource}
+                    onChange={setFilterSource}
+                    placeholder="Select Source..."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Destination City</label>
+                  <Combobox
+                    options={locations.map(loc => ({ label: loc.name || loc.cityName || '', value: loc.id }))}
+                    value={filterDestination}
+                    onChange={setFilterDestination}
+                    placeholder="Select Destination..."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Cab Type</label>
+                  <Combobox
+                    options={cabs.map(cab => ({ label: `${cab.name} (${cab.type})`, value: cab.id }))}
+                    value={filterCabType}
+                    onChange={setFilterCabType}
+                    placeholder="Select Cab..."
+                  />
+                </div>
+                {(filterSource || filterDestination || filterCabType) && (
+                  <Button
+                    variant="ghost"
+                    className="w-full text-red-500 hover:text-red-600 hover:bg-red-50"
+                    onClick={() => {
+                      setFilterSource('');
+                      setFilterDestination('');
+                      setFilterCabType('');
+                    }}
+                  >
+                    Clear Filters
+                  </Button>
+                )}
+              </div>
+            </PopoverContent>
+          </Popover>
 
-
-      {/* Filters */}
-      <div className="flex flex-wrap gap-3 mb-6 items-center bg-card p-3 rounded-xl border border-border shadow-sm">
-        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground mr-2">
-          <MapPin size={16} />
-          Filters:
+          <button
+            onClick={() => openModal()}
+            className="flex-1 md:flex-none bg-primary hover:bg-primary-dark text-primary-foreground px-6 py-2 rounded-full flex items-center justify-center gap-2 transition-all duration-200 hover:shadow-lg h-10"
+          >
+            <Plus size={20} />
+            Add Package
+          </button>
         </div>
-        <select
-          value={filterSource}
-          onChange={(e) => setFilterSource(e.target.value)}
-          className="px-3 py-1.5 border border-input rounded-full text-sm bg-background text-foreground hover:border-primary focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-        >
-          <option value="">All Sources</option>
-          {locations.map((loc) => (
-            <option key={loc.id} value={loc.id}>{loc.name || loc.cityName}</option>
-          ))}
-        </select>
-        <select
-          value={filterDestination}
-          onChange={(e) => setFilterDestination(e.target.value)}
-          className="px-3 py-1.5 border border-input rounded-full text-sm bg-background text-foreground hover:border-primary focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-        >
-          <option value="">All Destinations</option>
-          {locations.map((loc) => (
-            <option key={loc.id} value={loc.id}>{loc.name || loc.cityName}</option>
-          ))}
-        </select>
-        <select
-          value={filterCabType}
-          onChange={(e) => setFilterCabType(e.target.value)}
-          className="px-3 py-1.5 border border-input rounded-full text-sm bg-background text-foreground hover:border-primary focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-        >
-          <option value="">All Cabs</option>
-          {cabs.map((cab) => (
-            <option key={cab.id} value={cab.id}>{cab.name} ({cab.type})</option>
-          ))}
-        </select>
       </div>
 
       <div className="space-y-8">
         {Object.keys(groupedDisplay).length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
-            No packages found matching your filters.
+            {hasFilters
+              ? "No packages found matching your filters."
+              : "No packages available. Add one to get started."}
           </div>
         ) : (
           Object.entries(groupedDisplay).map(([sourceName, sourcePackages]) => (
@@ -517,38 +573,26 @@ export default function OneWayPackagesPage() {
                       <label className="block text-sm font-medium text-foreground mb-1">
                         Source City
                       </label>
-                      <select
+                      <Combobox
+                        options={locations.map(loc => ({ label: loc.name || loc.cityName || '', value: loc.id }))}
                         value={formData.sourceId}
-                        onChange={(e) => setFormData({ ...formData, sourceId: e.target.value })}
-                        className="w-full px-4 py-3 border border-input rounded-full focus:ring-2 focus:ring-ring focus:border-transparent bg-background text-foreground transition-all duration-200"
-                        required
-                      >
-                        <option value="">Select Source</option>
-                        {Array.isArray(locations) && locations.map((location) => (
-                          <option key={location.id} value={location.id}>
-                            {location.name || location.cityName}
-                          </option>
-                        ))}
-                      </select>
+                        onChange={(value) => setFormData({ ...formData, sourceId: value })}
+                        placeholder="Select Source"
+                      />
                     </div>
 
                     <div>
                       <label className="block text-sm font-medium text-foreground mb-1">
                         Destination City
                       </label>
-                      <select
+                      <Combobox
+                        options={locations
+                          .filter(loc => loc.id !== formData.sourceId)
+                          .map(loc => ({ label: loc.name || loc.cityName || '', value: loc.id }))}
                         value={formData.destinationId}
-                        onChange={(e) => setFormData({ ...formData, destinationId: e.target.value })}
-                        className="w-full px-4 py-3 border border-input rounded-full focus:ring-2 focus:ring-ring focus:border-transparent bg-background text-foreground transition-all duration-200"
-                        required
-                      >
-                        <option value="">Select Destination</option>
-                        {locations.filter(loc => loc.id !== formData.sourceId).map((location) => (
-                          <option key={location.id} value={location.id}>
-                            {location.name || location.cityName}
-                          </option>
-                        ))}
-                      </select>
+                        onChange={(value) => setFormData({ ...formData, destinationId: value })}
+                        placeholder="Select Destination"
+                      />
                     </div>
                   </div>
 
@@ -556,19 +600,12 @@ export default function OneWayPackagesPage() {
                     <label className="block text-sm font-medium text-foreground mb-1">
                       Cab
                     </label>
-                    <select
+                    <Combobox
+                      options={cabs.map(cab => ({ label: `${cab.name} (${cab.type})`, value: cab.id }))}
                       value={formData.cabId}
-                      onChange={(e) => setFormData({ ...formData, cabId: e.target.value })}
-                      className="w-full px-4 py-3 border border-input rounded-full focus:ring-2 focus:ring-ring focus:border-transparent bg-background text-foreground transition-all duration-200"
-                      required
-                    >
-                      <option value="">Select Cab</option>
-                      {Array.isArray(cabs) && cabs.map((cab) => (
-                        <option key={cab.id} value={cab.id}>
-                          {cab.name} ({cab.type})
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(value) => setFormData({ ...formData, cabId: value })}
+                      placeholder="Select Cab"
+                    />
                   </div>
 
                   <div>
@@ -650,23 +687,23 @@ export default function OneWayPackagesPage() {
                     <h4 className="text-sm font-medium text-foreground mb-2">Package Features (Included)</h4>
                     <div className="grid grid-cols-1 gap-2 text-xs text-muted-foreground">
                       <div className="flex items-center gap-2">
-                        <span className="text-green-600">✅</span>
+                        <CheckCircle2 size={16} className="text-green-600" />
                         <span>Assured Cab (Confirmed Cab Arrival)</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-green-600">✅</span>
+                        <CheckCircle2 size={16} className="text-green-600" />
                         <span>Verified Driver</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-green-600">✅</span>
+                        <CheckCircle2 size={16} className="text-green-600" />
                         <span>Door-to-Door Service</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-green-600">✅</span>
+                        <CheckCircle2 size={16} className="text-green-600" />
                         <span>Fixed Fare – No KMs Limitations</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-green-600">✅</span>
+                        <CheckCircle2 size={16} className="text-green-600" />
                         <span>24*7 Customer Support</span>
                       </div>
                     </div>

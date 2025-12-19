@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Car, Clock, MapPin, DollarSign } from 'lucide-react';
 import { toast } from "sonner";
+import { Combobox } from "@/components/ui/combobox";
 
 interface Cab {
   id: string;
@@ -362,19 +363,12 @@ export default function LocalPackagesPage() {
                   <label className="block text-sm font-medium text-foreground mb-1">
                     Cab
                   </label>
-                  <select
+                  <Combobox
+                    options={getAvailableCabs().map(cab => ({ label: `${cab.name} (${cab.type})`, value: cab.id }))}
                     value={formData.cabId}
-                    onChange={(e) => setFormData({ ...formData, cabId: e.target.value })}
-                    className="w-full px-3 py-2 border border-input rounded-full focus:ring-2 focus:ring-primary focus:border-transparent"
-                    required
-                  >
-                    <option value="">Select Cab</option>
-                    {getAvailableCabs().map((cab) => (
-                      <option key={cab.id} value={cab.id}>
-                        {cab.name} ({cab.type})
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(value) => setFormData({ ...formData, cabId: value })}
+                    placeholder="Select Cab"
+                  />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">

@@ -82,11 +82,8 @@ export default function Sidebar({ admin }: SidebarProps) {
 
   // Close mobile sidebar when route changes
   useEffect(() => {
-    if (isMobileOpen) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setIsMobileOpen(false)
-    }
-  }, [pathname, isMobileOpen])
+    setIsMobileOpen(false)
+  }, [pathname])
 
   // Handle responsive behavior
   useEffect(() => {
@@ -106,16 +103,14 @@ export default function Sidebar({ admin }: SidebarProps) {
   return (
     <>
       {/* Mobile menu button */}
-      <button
-        onClick={() => setIsMobileOpen(!isMobileOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-card rounded-lg shadow-md border border-border"
-      >
-        {isMobileOpen ? (
-          <X className="w-5 h-5 text-foreground" />
-        ) : (
+      {!isMobileOpen && (
+        <button
+          onClick={() => setIsMobileOpen(true)}
+          className="lg:hidden fixed top-4 left-4 z-50 p-2 bg-card rounded-lg shadow-md border border-border"
+        >
           <Menu className="w-5 h-5 text-foreground" />
-        )}
-      </button>
+        </button>
+      )}
 
       {/* Mobile overlay */}
       {isMobileOpen && (
@@ -149,8 +144,8 @@ export default function Sidebar({ admin }: SidebarProps) {
         </button>
 
         {/* Header */}
-        <div className="flex items-center justify-center h-16 border-b border-border">
-          <div className={cn('flex items-center gap-3', !isExpanded && 'lg:justify-center')}>
+        <div className="flex items-center justify-between px-4 h-16 border-b border-border">
+          <div className={cn('flex items-center gap-3', !isExpanded && 'lg:justify-center w-full')}>
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-sm shrink-0">
               <Car className="w-5 h-5 text-primary-foreground" />
             </div>
@@ -161,6 +156,13 @@ export default function Sidebar({ admin }: SidebarProps) {
               </div>
             )}
           </div>
+          {/* Mobile Close Button */}
+          <button
+            onClick={() => setIsMobileOpen(false)}
+            className="lg:hidden p-1 rounded-md hover:bg-muted text-muted-foreground"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
         {/* Navigation */}
