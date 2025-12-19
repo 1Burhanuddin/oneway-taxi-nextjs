@@ -30,7 +30,7 @@ export default function AdminLayoutClient({ admin, children }: AdminLayoutClient
   }, [])
 
   return (
-    <div className="min-h-screen bg-[#f8f9fc] dark:bg-gray-900 transition-colors duration-300">
+    <div className="min-h-screen bg-[#f8f9fc] transition-colors duration-300">
       <Sidebar admin={admin} />
 
       {/* Main content area with responsive margin for sidebar */}
