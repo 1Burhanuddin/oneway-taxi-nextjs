@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import OneWayForm from "@/components/OneWayForm";
@@ -12,6 +12,7 @@ import Confirmation from "@/components/Confirmation";
 import InfoSections from "@/components/InfoSections";
 import Footer from "@/components/Footer";
 import FleetSection from "@/components/FleetSection";
+import { gtag_report_conversion } from "@/lib/gtag";
 
 type Step = 'hero' | 'form' | 'cars' | 'details' | 'confirmation';
 type TripType = 'oneway' | 'roundtrip' | 'local' | null;
@@ -23,6 +24,11 @@ export default function Home() {
   const [selectedCar, setSelectedCar] = useState<any>(null);
   const [bookingData, setBookingData] = useState<any>(null);
   const [showForm, setShowForm] = useState<boolean>(true); // Show form by default
+
+  useEffect(() => {
+    // Trigger conversion event on landing page load
+    gtag_report_conversion();
+  }, []);
 
   const handleTripTypeSelect = (type: TripType) => {
     setTripType(type);
