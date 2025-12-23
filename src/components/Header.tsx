@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { gtag_report_conversion } from "@/lib/gtag";
 
 import RequestCallBackDialog from "@/components/RequestCallBackDialog";
 
@@ -76,7 +77,11 @@ const Header = () => {
             {/* Contact Info & CTA */}
             <div className="hidden lg:flex items-center gap-4">
               <div className="text-right">
-                <a href="tel:+918511680364" className="text-sm font-semibold text-white drop-shadow hover:text-yellow-400 transition-colors">
+                <a
+                  href="tel:+918511680364"
+                  onClick={() => gtag_report_conversion('tel:+918511680364')}
+                  className="text-sm font-semibold text-white drop-shadow hover:text-yellow-400 transition-colors"
+                >
                   +91 85116 80364
                 </a>
                 <p className="text-xs text-white/80 drop-shadow">Available 24x7</p>
@@ -122,7 +127,11 @@ const Header = () => {
                   </Link>
                 ))}
                 <div className="pt-4 border-t border-white/10">
-                  <a href="tel:+918511680364" className="block text-sm font-semibold text-white mb-1 drop-shadow hover:text-yellow-400 transition-colors">
+                  <a
+                    href="tel:+918511680364"
+                    onClick={() => gtag_report_conversion('tel:+918511680364')}
+                    className="block text-sm font-semibold text-white mb-1 drop-shadow hover:text-yellow-400 transition-colors"
+                  >
                     +91 85116 80364
                   </a>
                   <p className="text-xs text-white/80 mb-3 drop-shadow">Available 24x7</p>

@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Link from 'next/link';
 import BookingInquiryDialog from "@/components/BookingInquiryDialog";
+import { gtag_report_conversion } from "@/lib/gtag";
 
 interface Cab {
     id: number;
@@ -45,6 +46,7 @@ const FleetSection = () => {
     };
 
     const handleBookNow = (cab: Cab) => {
+        gtag_report_conversion();
         setSelectedCab(cab);
         setIsInquiryOpen(true);
     };

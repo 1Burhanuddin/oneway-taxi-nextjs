@@ -6,6 +6,8 @@ import { Toaster } from '@/components/ui/toaster'
 import { Toaster as Sonner } from '@/components/ui/sonner'
 import '@/styles/globals.css'
 import { Providers } from './providers'
+import Script from 'next/script'
+import { GA_TRACKING_ID } from '@/lib/gtag'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -22,6 +24,24 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <Script
+          strategy="afterInteractive"
+          src={`https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`}
+        />
+        <Script
+          id="google-analytics"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', '${GA_TRACKING_ID}');
+            `,
+          }}
+        />
+      </head>
       <body className={inter.className}>
         <Providers>
           <TooltipProvider>
